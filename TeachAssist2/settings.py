@@ -43,7 +43,10 @@ INSTALLED_APPS = [
 INSTALLED_APPS += [
     'rest_framework',
 
+
     'account',
+    'course_arrangement',
+    'project_management',
     'utils',
 ]
 

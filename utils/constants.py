@@ -15,3 +15,5 @@ class UserType(Choices):
     STUDENT = 'student'
     SECRETARY = 'secretary'
 
+
+

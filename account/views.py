@@ -1,14 +1,12 @@
 from django.contrib import auth
 
-from rest_framework.response import Response
-
 from utils.views import APIView, validate_serializer
+
 from account.serializers import UserRegisterSerializer, UserLoginSerializer
 from account.models import User
 
 
 class UserRegisterAPI(APIView):
-    response_class = Response
 
     @validate_serializer(UserRegisterSerializer)
     def post(self, request):
@@ -49,7 +47,6 @@ class UserLoginAPI(APIView):
 
 
 class UserLogoutAPI(APIView):
-    response_class = Response
 
     def get(self, request):
         auth.logout(request)

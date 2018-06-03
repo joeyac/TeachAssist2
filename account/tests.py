@@ -22,11 +22,11 @@ class AccountTestCase(TestCase):
         return self.c.post(url, json.dumps(data), content_type="application/json")
 
     def test_login_success(self):
-        response = self.send_json('/account/login/', {'username': 'g123', 'password': 'g123'})
+        response = self.send_json('/login/', {'username': 'g123', 'password': 'g123'})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual('Succeeded', response.json()['data'])
 
     def test_login_failed(self):
-        response = self.send_json('/account/login/', {'username': 'g123', 'password': '123g'})
+        response = self.send_json('/login/', {'username': 'g123', 'password': '123g'})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual('Invalid username or password', response.json()['data'])
