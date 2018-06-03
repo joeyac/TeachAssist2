@@ -1,7 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 
-from utils.constants import UserType, Choices
+from utils.constants import UserType
 
 
 class User(AbstractUser):
