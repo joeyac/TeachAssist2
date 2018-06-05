@@ -28,5 +28,19 @@ class AccountTestCase(TestCase):
 
     def test_login_failed(self):
         response = self.send_json('/login/', {'username': 'g123', 'password': '123g'})
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual('Invalid username or password', response.json()['data'])
+
+    def test_create_user(self):
+        response = self.send_json('/register/',
+                                  {'username': 'username1234', 'password': '1234567890', 'email': 'xu_qq@test.com',
+                                   'user_type': 'student'})
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual('Succeeded', response.json()['data'])
+
+    def test_create_user_failed(self):
+        response = self.send_json('/register/',
+                                  {'username': 'username1234', 'password': '1234567890', 'email': 'xu_qq@test.com',
+                                   'user_type': 'student===='})
+        print(response.json())
