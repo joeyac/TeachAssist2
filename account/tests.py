@@ -34,8 +34,7 @@ class AccountTestCase(TestCase):
     def test_create_user(self):
         response = self.send_json('/register/',
                                   {'username': 'username1234', 'password': '1234567890', 'email': 'xu_qq@test.com',
-                                   'user_type': 'student'})
-
+                                   'user_type': UserType.STUDENT})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual('Succeeded', response.json()['data'])
 

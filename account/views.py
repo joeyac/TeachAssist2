@@ -1,7 +1,7 @@
 from django.contrib import auth
 
 from utils.views import APIView
-from utils.serializers import SuccessResponseSerializer, ErrorResponseSerializer
+from utils.constants import SUCCESS_RESPONSE_STRING, ERROR_RESPONSE_STRING
 
 from account.serializers import UserRegisterSerializer, UserLoginSerializer
 from account.models import User
@@ -14,9 +14,9 @@ class UserRegisterAPI(APIView):
 
     @swagger_auto_schema(
         operation_description="API: User register",
-        query_serializer=UserRegisterSerializer,
-        responses={200: SuccessResponseSerializer(data={"error": None, "data": "success"}),
-                   400: ErrorResponseSerializer}
+        request_body=UserRegisterSerializer,
+        responses={200: SUCCESS_RESPONSE_STRING,
+                   400: ERROR_RESPONSE_STRING}
     )
     def post(self, request):
         """
@@ -43,9 +43,9 @@ class UserLoginAPI(APIView):
 
     @swagger_auto_schema(
         operation_description="API: User login",
-        query_serializer=UserLoginSerializer,
-        responses={200: SuccessResponseSerializer(data={"error": None, "data": "success"}),
-                   400: ErrorResponseSerializer}
+        request_body=UserLoginSerializer,
+        responses={200: SUCCESS_RESPONSE_STRING,
+                   400: ERROR_RESPONSE_STRING}
     )
     def post(self, request):
         """
@@ -77,6 +77,11 @@ class UserLogoutAPI(APIView):
 
 class TestDecoratorsAPI(APIView):
 
+    @swagger_auto_schema(
+        operation_description="API: test",
+        responses={200: SUCCESS_RESPONSE_STRING,
+                   400: ERROR_RESPONSE_STRING}
+    )
     @login_required
     def get(self, request):
         user = request.user

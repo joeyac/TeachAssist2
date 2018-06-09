@@ -12,16 +12,17 @@ from rest_framework.status import *
 logger = logging.getLogger("")
 
 
+def response(data, status_code):
+    return Response(data, status=status_code)
+
+
 class APIView(View):
 
-    def response(self, data, status_code):
-        return Response(data, status=status_code)
-
     def success(self, data=None):
-        return self.response({"error": None, "data": data}, HTTP_200_OK)
+        return response({"error": None, "data": data}, HTTP_200_OK)
 
     def error(self, msg="error", err="error", status_code=HTTP_400_BAD_REQUEST):
-        return self.response({"error": err, "data": msg}, status_code)
+        return response({"error": err, "data": msg}, status_code)
 
     def _serializer_error_to_str(self, errors):
         for k, v in errors.items():

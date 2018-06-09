@@ -1,5 +1,6 @@
 from django.db import models
 from account.models import User
+from utils.constants import RequireDegree
 
 
 class ClassRoom(models.Model):
@@ -55,13 +56,17 @@ class Lecture(models.Model):
 
 
 class Requirement(models.Model):
-    prefer = models.BooleanField()
+    # 5 represents the most favorite
+    # 4 represents the second favorite
+    # 3 represents acceptable favorite
+    # 2 represents mediocre favorite
+    # 1 represents the least favorite
+    # -10 represents reject
+    favorite = models.IntegerField(choices=RequireDegree.model_choices(), default=RequireDegree.MEDIOCRE)
     # every requirement should link to a lecture
     lecture = models.ForeignKey(Lecture, on_delete=models.CASCADE)
     # 所属老师
     teacher = models.ForeignKey(User, on_delete=models.CASCADE)
-    # 是否满足了需求
-    satisfied = models.BooleanField(default=False)
 
     def __str__(self):
         return "{}-{}".format(self.teacher.get_full_name(), self.lecture)
