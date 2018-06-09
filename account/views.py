@@ -5,6 +5,7 @@ from utils.serializers import SuccessResponseSerializer, ErrorResponseSerializer
 
 from account.serializers import UserRegisterSerializer, UserLoginSerializer
 from account.models import User
+from account.decorators import login_required
 
 from drf_yasg.utils import swagger_auto_schema
 
@@ -14,7 +15,7 @@ class UserRegisterAPI(APIView):
     @swagger_auto_schema(
         operation_description="API: User register",
         query_serializer=UserRegisterSerializer,
-        responses={200: SuccessResponseSerializer,
+        responses={200: SuccessResponseSerializer(data={"error": None, "data": "success"}),
                    400: ErrorResponseSerializer}
     )
     def post(self, request):
@@ -72,3 +73,11 @@ class UserLogoutAPI(APIView):
     def get(self, request):
         auth.logout(request)
         return self.success()
+
+
+class TestDecoratorsAPI(APIView):
+
+    @login_required
+    def get(self, request):
+        user = request.user
+        return self.success(user.username)

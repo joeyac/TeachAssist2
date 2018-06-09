@@ -43,4 +43,13 @@ class AccountTestCase(TestCase):
         response = self.send_json('/register/',
                                   {'username': 'username1234', 'password': '1234567890', 'email': 'xu_qq@test.com',
                                    'user_type': 'student===='})
-        print(response.json())
+        self.assertEqual(response.json()['data'], 'user_type: "student====" is not a valid choice.')
+
+    def test_decorator_success(self):
+        self.send_json('/login/', {'username': 'g123', 'password': 'g123'})
+        response = self.c.get('/test/')
+        self.assertEqual(response.json()['data'], 'g123')
+
+    def test_decorator_failed(self):
+        response = self.c.get('/test/')
+        self.assertEqual(response.json()['data'], 'Please login first')
