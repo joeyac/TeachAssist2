@@ -7,8 +7,9 @@ from drf_yasg.utils import swagger_auto_schema
 from project_management.models import SRTPProject, File_Info, EduProject, GraProject
 from utils.constants import FileType, ProStage, UserType
 from account.models import User
-# from account.decorators import student_required
+from account.decorators import student_required
 import django.utils.timezone as timezone
+from project_management.serializers import SRTPProjectCreationSerializer, SRTPProjectInitFileUploadSerializer
 
 
 '''---------------------------SRTP项目部分---------------------------------------'''
@@ -17,38 +18,39 @@ import django.utils.timezone as timezone
 class SRTPProjectCreationAPI(APIView):
     @swagger_auto_schema(
         operation_description="API: srtp  project creation",
-        # query_serializer=student_required,
+        query_serializer=SRTPProjectCreationSerializer,
         responses={200: SuccessResponseSerializer,
                    400: ErrorResponseSerializer}
     )
+    # @student_required(APIView)
     def post(self, request):
+        serializer = SRTPProjectCreationSerializer(data=request.data)
         # serializer = UserLoginSerializer(data=request.data)
-        data = request.data
-        user = request.user
-        f = request.FILES
-        # print(f)
-        if not f:
-            return self.success("NO files")
-        stu = User.objects.get(username=user.username)
-        '''
-        测试用代码
-        '''
-        if stu.srtp_project is not None:
-            return self.success("repeated creation operation!")
+        if serializer.is_valid():
+            data = serializer.data
+            user = serializer.user
 
-        srtp_project = SRTPProject.objects.create()
-        # srtp_project.crate_time = timezone.now()
-        srtp_project.update_time = timezone.now()
-        srtp_project.save()
-        file_url = '../upgrade/' + data['filename']
-        file_info = File_Info.objects.create(file_name=data['filename'], file_url=file_url, project=srtp_project)
-        file_info.save()
-        stu.srtp_project = srtp_project
-        stu.save()
-        try:
+            stu = User.objects.get(username=user.username)
+            if stu.srtp_project is not None:
+                return self.success(u"请删除原有的项目")
+
+            file = data['file']
+            # print(f)
+            if not file:
+                return self.success("NO files")
+
+            srtp_project = SRTPProject.objects.create(pro_level=data["pro_level"])
+            srtp_project.crate_time = timezone.now()
+            srtp_project.update_time = timezone.now()
+            srtp_project.save()
+            # file_url = '../upgrade/' + data['filename']
+            file_info = File_Info.objects.create(file=file, project=srtp_project, pro_stage=ProStage.INIT)
+            file_info.save()
+            stu.srtp_project = srtp_project
+            stu.save()
             return self.success("Succeeded")
-        except:
-            return self.error("ERROR")
+        else:
+            return self.invalid_serializer(serializer)
 
 
 class SRTPProjectInitFileDeletionAPI(APIView):
@@ -62,8 +64,6 @@ class SRTPProjectInitFileDeletionAPI(APIView):
         '''
         用户必须有一个项目,
         必须存在项目申请表,将所有的项目申请表都删掉
-        :param request:
-        :return:
         '''
         # data = request.data
         user = request.user
@@ -71,173 +71,56 @@ class SRTPProjectInitFileDeletionAPI(APIView):
         先找到原来的申请表
         '''
         srtp_project = User.objects.filter(username=user.username)
+        if srtp_project is None:
+            return self.error("there is no project!")
         origin_files = File_Info.objects.filter(project=srtp_project, pro_stage=ProStage.INIT)
-        origin_files.all().delete()
+        if origin_files:
+            origin_files.all().delete()
+        else:
+            return self.error("there is no application form!")
         return self.success("Successed")
 
 
 class SRTPProjectInitFileUploadAPI(APIView):
     @swagger_auto_schema(
         operation_description="API: SRTP project upload initial file",
-        # query_serializer=student_required,
+        query_serializer=SRTPProjectInitFileUploadSerializer,
         responses={200: SuccessResponseSerializer,
                    400: ErrorResponseSerializer}
     )
     def post(self, request):
+        serializer = SRTPProjectInitFileUploadSerializer(data=request.data)
         '''
         用户必定会有一个项目
         1. 删除之前的文件
         2. 添加现在的文件
         3. 那么必须有删除文件的操作
-        :param request:
-        :return:
         '''
-        data = request.data
-        user = request.user
+        if serializer.is_valid():
+            data = serializer.data
+            user = serializer.user
 
-        files = request.FILES
-        srtp_project = User.objects.filter(username=user.username)
+            files = data['file']
+            srtp_project = User.objects.filter(username=user.username)
 
-        origin_files = File_Info.objects.filter(project=srtp_project, pro_stage=ProStage.INIT)
-        origin_files.all().delete()
+            if srtp_project is None:
+                return self.error("there is no match project!")
+            origin_files = File_Info.objects.filter(project=srtp_project, pro_stage=ProStage.INIT)
+            origin_files.all().delete()
 
-        if not files:
-            return self.error("NO files")
+            if not files:
+                return self.error("NO files")
 
-        file_url_bind = '../upload/'
-        cnt = 1
-        for file in files:
-            file_url = file_url_bind+str(cnt)+'_'+file
-            init_file = File_Info.objects.create(file_name=file, file_url=file_url, project=srtp_project, pro_stage=ProStage.INIT)
-            init_file.save()
-            cnt += 1
-        return self.success("Successed")
-
-
-class SRTPProjectMidFileUploadAPI(APIView):
-    @swagger_auto_schema(
-        operation_description="API: SRTP project upload Midterm file",
-        # query_serializer=student_required,
-        responses={200: SuccessResponseSerializer,
-                   400: ErrorResponseSerializer}
-    )
-    def post(self, request):
-        '''
-        用户必定会有一个项目
-        1. 删除之前的文件
-        2. 添加现在的文件
-        3. 那么必须有删除文件的操作
-        :param request:
-        :return:
-        '''
-        data = request.data
-        user = request.user
-
-        files = request.FILES
-        srtp_project = User.objects.filter(username=user.username)
-
-        origin_files = File_Info.objects.filter(project=srtp_project, pro_stage=ProStage.MID)
-        origin_files.all().delete()
-
-        if not files:
-            return self.error("NO files")
-
-        file_url_bind = '../upload/'
-        cnt = 1
-        for file in files:
-            file_url = file_url_bind+str(cnt)+'_'+file
-            init_file = File_Info.objects.create(file_name=file, file_url=file_url, project=srtp_project, pro_stage=ProStage.MID)
-            init_file.save()
-            cnt += 1
-        return self.success("Successed")
-
-
-class SRTPProjectMidFileDeletionAPI(APIView):
-    @swagger_auto_schema(
-        operation_description="API: SRTP project delete Midterm file",
-        # query_serializer=student_required,
-        responses={200: SuccessResponseSerializer,
-                   400: ErrorResponseSerializer}
-    )
-    def get(self, request):
-        '''
-        用户必须有一个项目,
-        必须存在项目申请表,将所有的项目申请表都删掉
-        :param request:
-        :return:
-        '''
-        # data = request.data
-        user = request.user
-        '''
-        先找到原来的申请表
-        '''
-        srtp_project = User.objects.filter(username=user.username)
-        origin_files = File_Info.objects.filter(project=srtp_project, pro_stage=ProStage.MID)
-        origin_files.all().delete()
-        return self.success("Successed")
-
-
-class SRTPProjectFINFileUploadAPI(APIView):
-    @swagger_auto_schema(
-        operation_description="API: SRTP project upload Final file",
-        # query_serializer=student_required,
-        responses={200: SuccessResponseSerializer,
-                   400: ErrorResponseSerializer}
-    )
-    def post(self, request):
-        '''
-        用户必定会有一个项目
-        1. 删除之前的文件
-        2. 添加现在的文件
-        3. 那么必须有删除文件的操作
-        :param request:
-        :return:
-        '''
-        data = request.data
-        user = request.user
-
-        files = request.FILES
-        srtp_project = User.objects.filter(username=user.username)
-
-        origin_files = File_Info.objects.filter(project=srtp_project, pro_stage=ProStage.FIN)
-        origin_files.all().delete()
-
-        if not files:
-            return self.error("NO files")
-
-        file_url_bind = '../upload/'
-        cnt = 1
-        for file in files:
-            file_url = file_url_bind+str(cnt)+'_'+file
-            init_file = File_Info.objects.create(file_name=file, file_url=file_url, project=srtp_project, pro_stage=ProStage.FIN)
-            init_file.save()
-            cnt += 1
-        return self.success("Successed")
-
-
-class SRTPProjectFINFileDeletionAPI(APIView):
-    @swagger_auto_schema(
-        operation_description="API: SRTP project delete Final file",
-        # query_serializer=student_required,
-        responses={200: SuccessResponseSerializer,
-                   400: ErrorResponseSerializer}
-    )
-    def get(self, request):
-        '''
-        用户必须有一个项目,
-        必须存在项目申请表,将所有的项目申请表都删掉
-        :param request:
-        :return:
-        '''
-        # data = request.data
-        user = request.user
-        '''
-        先找到原来的申请表
-        '''
-        srtp_project = User.objects.filter(username=user.username)
-        origin_files = File_Info.objects.filter(project=srtp_project, pro_stage=ProStage.FIN)
-        origin_files.all().delete()
-        return self.success("Successed")
+            file_url_bind = '../upload/'
+            cnt = 1
+            for file in files:
+                file_url = file_url_bind+str(cnt)+'_'+file
+                init_file = File_Info.objects.create(file_name=file, file_url=file_url, project=srtp_project, pro_stage=ProStage.INIT)
+                init_file.save()
+                cnt += 1
+            return self.success("Successed")
+        else:
+            return self.invalid_serializer(serializer)
 
 
 '''---------------------------教改项目部分---------------------------------------
