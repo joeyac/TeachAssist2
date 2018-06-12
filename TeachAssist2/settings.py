@@ -132,3 +132,9 @@ USE_TZ = False
 STATIC_URL = '/static/'
 
 MEDIA_ROOT = 'static/upload/'
+
+REST_FRAMEWORK = {
+    'DEFAULT_PARSER_CLASSES': (
+        'rest_framework.parsers.MultiPartParser',
+    )
+}

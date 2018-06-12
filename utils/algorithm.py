@@ -32,14 +32,14 @@ class Single(object):
         self.pid = pid
 
     def update(self, pos_best, g_pos_best):
-        K = 0.72984
+        k = 0.72984
         c1 = 2.05
         c2 = 2.05
         r1 = random.uniform(0, 1)
         r2 = random.uniform(0, 1)
         self.v = self.v + c1 * r1 * (pos_best - self.pos) + c2 * r2 * (g_pos_best - self.pos)
 
-        self.v = self.v * K
+        self.v = self.v * k
 
         self.pos = self.pos + self.v
 

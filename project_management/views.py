@@ -11,14 +11,13 @@ from account.decorators import student_required
 import django.utils.timezone as timezone
 from project_management.serializers import SRTPProjectCreationSerializer, SRTPProjectInitFileUploadSerializer
 
-
 '''---------------------------SRTP项目部分---------------------------------------'''
 
 
 class SRTPProjectCreationAPI(APIView):
     @swagger_auto_schema(
         operation_description="API: srtp  project creation",
-        query_serializer=SRTPProjectCreationSerializer,
+        request_body=SRTPProjectCreationSerializer,
         responses={200: SuccessResponseSerializer,
                    400: ErrorResponseSerializer}
     )
@@ -56,7 +55,6 @@ class SRTPProjectCreationAPI(APIView):
 class SRTPProjectInitFileDeletionAPI(APIView):
     @swagger_auto_schema(
         operation_description="API: SRTP project delete initial file",
-        # query_serializer=student_required,
         responses={200: SuccessResponseSerializer,
                    400: ErrorResponseSerializer}
     )
@@ -84,7 +82,7 @@ class SRTPProjectInitFileDeletionAPI(APIView):
 class SRTPProjectInitFileUploadAPI(APIView):
     @swagger_auto_schema(
         operation_description="API: SRTP project upload initial file",
-        query_serializer=SRTPProjectInitFileUploadSerializer,
+        request_body=SRTPProjectInitFileUploadSerializer,
         responses={200: SuccessResponseSerializer,
                    400: ErrorResponseSerializer}
     )
@@ -114,8 +112,9 @@ class SRTPProjectInitFileUploadAPI(APIView):
             file_url_bind = '../upload/'
             cnt = 1
             for file in files:
-                file_url = file_url_bind+str(cnt)+'_'+file
-                init_file = File_Info.objects.create(file_name=file, file_url=file_url, project=srtp_project, pro_stage=ProStage.INIT)
+                file_url = file_url_bind + str(cnt) + '_' + file
+                init_file = File_Info.objects.create(file_name=file, file_url=file_url, project=srtp_project,
+                                                     pro_stage=ProStage.INIT)
                 init_file.save()
                 cnt += 1
             return self.success("Successed")
@@ -131,7 +130,6 @@ class SRTPProjectInitFileUploadAPI(APIView):
 class GraProjectCreationAPI(APIView):
     @swagger_auto_schema(
         operation_description="API: Graduation project creation",
-        # query_serializer=student_required,
         responses={200: SuccessResponseSerializer,
                    400: ErrorResponseSerializer}
     )
@@ -141,7 +139,7 @@ class GraProjectCreationAPI(APIView):
         if user.gra_project is not None:
             return self.error("Creation repeated")
         gra_project = GraProject.objects.create()
-        gra_project.update_time=timezone.now()
+        gra_project.update_time = timezone.now()
         gra_project.save()
         # print(user.user_type)
         if user.user_type == UserType.TEACHER:
@@ -169,7 +167,6 @@ class GraProjectCreationAPI(APIView):
 class GraProjectDeletionAPI(APIView):
     @swagger_auto_schema(
         operation_description="API: Graduation project deletion",
-        # query_serializer=student_required,
         responses={200: SuccessResponseSerializer,
                    400: ErrorResponseSerializer}
     )
@@ -182,7 +179,7 @@ class GraProjectDeletionAPI(APIView):
             return self.error("there is no project")
         members = User.objects.filter(gra_project=gra_project)
         for member in members:
-            member.gra_project=None
+            member.gra_project = None
             member.save()
         GraProject.objects.get(id=gra_project.id).delete()
         return self.success("Succeed")
