@@ -22,8 +22,7 @@ class Period(models.Model):
     section = models.IntegerField()
 
     def __str__(self):
-        days = ["周一", "周二", "周三", "周四", "周五"]
-        return "第{}周 {} 课{}".format(self.week, days[self.day], self.section)
+        return "week{} day{} section{}".format(self.week, self.day, self.section)
 
     class Meta:
         unique_together = ('week', 'day', 'section')
@@ -33,10 +32,19 @@ class Course(models.Model):
     teacher = models.ForeignKey(User, on_delete=models.CASCADE)
     name = models.CharField(max_length=255)
     total_period_number = models.IntegerField()
-    total_week_number = models.IntegerField()
+    capacity = models.IntegerField()
+
+    # 特殊课程对上课教室的特殊需求，比如实验课,这儿是硬性需求
+    reject_class_room = models.ManyToManyField(ClassRoom, blank=True, default=None)
 
     def __str__(self):
         return "{}({})".format(self.name, self.teacher.get_full_name())
+
+
+class Class(models.Model):
+    name = models.CharField(max_length=255)
+    capacity = models.IntegerField()
+    course = models.ManyToManyField(Course, blank=True, default=None)
 
 
 class Lecture(models.Model):
@@ -46,7 +54,8 @@ class Lecture(models.Model):
     period = models.ForeignKey(Period, on_delete=models.CASCADE)
 
     # one lecture can belong to a course or none
-    course = models.ForeignKey(Course, related_name='lectures', on_delete=models.SET_NULL, null=True, blank=True)
+    course = models.ForeignKey(Course, related_name='lectures', on_delete=models.SET_NULL, null=True, blank=True,
+                               default=None)
 
     def __str__(self):
         return "{}-{}".format(self.classroom, self.period)
@@ -65,8 +74,10 @@ class Requirement(models.Model):
     favorite = models.IntegerField(choices=RequireDegree.model_choices(), default=RequireDegree.MEDIOCRE)
     # every requirement should link to a lecture
     lecture = models.ForeignKey(Lecture, on_delete=models.CASCADE)
+
     # 所属老师
-    teacher = models.ForeignKey(User, on_delete=models.CASCADE)
+    # 不需要，每个lecture已经对应到了一个具体的teacher
+    # teacher = models.ForeignKey(User, on_delete=models.CASCADE)
 
     def __str__(self):
-        return "{}-{}".format(self.teacher.get_full_name(), self.lecture)
+        return "{}-{}".format(self.lecture.course.teacher.get_full_name(), self.lecture)
