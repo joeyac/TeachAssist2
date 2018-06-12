@@ -1,3 +1,5 @@
 Django==2.0.5
 djangorestframework==3.8.2
 drf-yasg[validation]
+djangorestframework_jwt
+django-jet

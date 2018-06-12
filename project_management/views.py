@@ -1,13 +1,11 @@
-from django.shortcuts import render
-
-# Create your views here.
 from utils.views import APIView
 from utils.serializers import SuccessResponseSerializer, ErrorResponseSerializer
 from drf_yasg.utils import swagger_auto_schema
-from project_management.models import SRTPProject, File_Info, EduProject, GraProject
+from project_management.models import SRTPProject, EduProject, GraProject
 from utils.constants import FileType, ProStage, UserType
 from account.models import User
-from account.decorators import student_required
+from account.decorators import *
+from rest_framework.parsers import MultiPartParser
 import django.utils.timezone as timezone
 from project_management.serializers import SRTPProjectCreationSerializer, SRTPProjectInitFileUploadSerializer
 
@@ -15,13 +13,15 @@ from project_management.serializers import SRTPProjectCreationSerializer, SRTPPr
 
 
 class SRTPProjectCreationAPI(APIView):
+    permission_classes = [login_required]
+    parser_classes = [MultiPartParser]
+
     @swagger_auto_schema(
         operation_description="API: srtp  project creation",
         request_body=SRTPProjectCreationSerializer,
         responses={200: SuccessResponseSerializer,
                    400: ErrorResponseSerializer}
     )
-    # @student_required(APIView)
     def post(self, request):
         serializer = SRTPProjectCreationSerializer(data=request.data)
         # serializer = UserLoginSerializer(data=request.data)
@@ -42,9 +42,6 @@ class SRTPProjectCreationAPI(APIView):
             srtp_project.crate_time = timezone.now()
             srtp_project.update_time = timezone.now()
             srtp_project.save()
-            # file_url = '../upgrade/' + data['filename']
-            file_info = File_Info.objects.create(file=file, project=srtp_project, pro_stage=ProStage.INIT)
-            file_info.save()
             stu.srtp_project = srtp_project
             stu.save()
             return self.success("Succeeded")
@@ -59,10 +56,10 @@ class SRTPProjectInitFileDeletionAPI(APIView):
                    400: ErrorResponseSerializer}
     )
     def get(self, request):
-        '''
+        """
         用户必须有一个项目,
         必须存在项目申请表,将所有的项目申请表都删掉
-        '''
+        """
         # data = request.data
         user = request.user
         '''
@@ -71,15 +68,12 @@ class SRTPProjectInitFileDeletionAPI(APIView):
         srtp_project = User.objects.filter(username=user.username)
         if srtp_project is None:
             return self.error("there is no project!")
-        origin_files = File_Info.objects.filter(project=srtp_project, pro_stage=ProStage.INIT)
-        if origin_files:
-            origin_files.all().delete()
-        else:
-            return self.error("there is no application form!")
-        return self.success("Successed")
+        return self.success("Succeed")
 
 
 class SRTPProjectInitFileUploadAPI(APIView):
+    parser_classes = [MultiPartParser]
+
     @swagger_auto_schema(
         operation_description="API: SRTP project upload initial file",
         request_body=SRTPProjectInitFileUploadSerializer,
@@ -103,21 +97,11 @@ class SRTPProjectInitFileUploadAPI(APIView):
 
             if srtp_project is None:
                 return self.error("there is no match project!")
-            origin_files = File_Info.objects.filter(project=srtp_project, pro_stage=ProStage.INIT)
-            origin_files.all().delete()
 
-            if not files:
-                return self.error("NO files")
-
-            file_url_bind = '../upload/'
             cnt = 1
             for file in files:
-                file_url = file_url_bind + str(cnt) + '_' + file
-                init_file = File_Info.objects.create(file_name=file, file_url=file_url, project=srtp_project,
-                                                     pro_stage=ProStage.INIT)
-                init_file.save()
                 cnt += 1
-            return self.success("Successed")
+            return self.success("Succeed")
         else:
             return self.invalid_serializer(serializer)
 
@@ -171,9 +155,7 @@ class GraProjectDeletionAPI(APIView):
                    400: ErrorResponseSerializer}
     )
     def get(self, request):
-        data = request.data
         user = request.user
-
         gra_project = user.gra_project
         if gra_project is None:
             return self.error("there is no project")
