@@ -25,5 +25,37 @@ class RequireDegree(Choices):
     REJECT = -10
 
 
+class FileType(Choices):
+    DOC = 'docx/doc'
+    EXCEL = 'excel'
+    ALL = 'all'
+    RAR = 'rar'
+
+
+class ProStage(Choices):
+    INIT = 'initial'
+    MID = 'midterm'
+    FIN = 'final'
+
+
+class ProType(Choices):
+    SRTP = 'srtp'
+    EDUCATION = 'education'
+    GRADUATION = 'graduation'
+
+
+class ProState(Choices):
+    RUNNING = 'running'
+    POSTPONED = 'postponed'
+    DONE = 'done'
+    ABANDONED = 'abandoned'
+
+
+class ProLevel(Choices):
+    COLLEGE = u'院级'
+    MUNICIPALPROMOTED = u'市级推荐级'
+    NATIONALPROMOTED = u'国家推荐级'
+
+
 ERROR_RESPONSE_STRING = {"error": "err", "data": "msg"}.__str__()
 SUCCESS_RESPONSE_STRING = {"error": None, "data": "data"}.__str__()
