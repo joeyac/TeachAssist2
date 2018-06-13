@@ -21,7 +21,9 @@ class SRTPProject(models.Model):
     file2 = models.FileField(null=True)
     file3 = models.FileField(null=True)
 
+    pro_name = models.CharField(max_length=100)
     introduction = models.CharField(max_length=2000)
+
 
 class EduProject(models.Model):
     update_time = models.DateTimeField(auto_now=True)
@@ -38,6 +40,7 @@ class EduProject(models.Model):
     file2 = models.FileField(null=True)
     file3 = models.FileField(null=True)
 
+    pro_name = models.CharField(max_length=100)
     introduction = models.CharField(max_length=2000)
 
 
@@ -53,4 +56,5 @@ class GraProject(models.Model):
     file2 = models.FileField(null=True)
     file3 = models.FileField(null=True)
 
+    pro_name = models.CharField(max_length=100)
     introduction = models.CharField(max_length=2000)
