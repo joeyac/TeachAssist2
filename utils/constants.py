@@ -45,6 +45,10 @@ class ProType(Choices):
 
 
 class ProState(Choices):
+    APPLYING = 'apllying'
+    APPLY_PASSED = 'apply_passed'
+    MIDTERM_CHECKING = 'midterm_checking'
+    MIDTERM_PASSED = 'midterm_passed'
     RUNNING = 'running'
     POSTPONED = 'postponed'
     DONE = 'done'
