@@ -11,7 +11,7 @@ class SRTPProject(models.Model):
     create_year = models.DateField()
     end_year = models.DateField()
 
-    pro_state = models.CharField(max_length=10, default=ProState.RUNNING, choices=ProState.model_choices())
+    pro_state = models.CharField(max_length=10, default=ProState.APPLYING, choices=ProState.model_choices())
     pro_level = models.CharField(max_length=10, default=ProLevel.COLLEGE, choices=ProLevel.model_choices())
 
     person_in_charge = models.ForeignKey(User, related_name='PIC_srtp', on_delete=models.CASCADE)
@@ -30,7 +30,7 @@ class EduProject(models.Model):
     create_year = models.DateField()
     end_year = models.DateField()
 
-    pro_state = models.CharField(max_length=10, default=ProState.RUNNING, choices=ProState.model_choices())
+    pro_state = models.CharField(max_length=10, default=ProState.APPLYING, choices=ProState.model_choices())
     pro_level = models.CharField(max_length=10, default=ProLevel.COLLEGE, choices=ProLevel.model_choices())
 
     person_in_charge = models.ForeignKey(User, related_name='PIC_edu', on_delete=models.CASCADE)

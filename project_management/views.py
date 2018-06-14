@@ -13,8 +13,8 @@ from project_management.serializers import SRTPProjectCreationSerializer, SRTPPr
 
 
 class SRTPProjectCreationAPI(APIView):
-    permission_classes = [login_required]
-    parser_classes = [MultiPartParser]
+    permission_classes = [login_required, student_required]
+    # parser_classes = [MultiPartParser]
 
     @swagger_auto_schema(
         operation_description="API: srtp  project creation",
@@ -24,26 +24,19 @@ class SRTPProjectCreationAPI(APIView):
     )
     def post(self, request):
         serializer = SRTPProjectCreationSerializer(data=request.data)
-        # serializer = UserLoginSerializer(data=request.data)
         if serializer.is_valid():
             data = serializer.data
-            user = serializer.user
 
-            stu = User.objects.get(username=user.username)
-            if stu.srtp_project is not None:
-                return self.success(u"请删除原有的项目")
-
-            file = data['file']
-            # print(f)
-            if not file:
-                return self.success("NO files")
-
-            srtp_project = SRTPProject.objects.create(pro_level=data["pro_level"])
-            srtp_project.crate_time = timezone.now()
-            srtp_project.update_time = timezone.now()
+            srtp_project = SRTPProject.objects.create(pro_level=data["pro_level"],
+                                                      person_in_charge=data['person_in_charge'],
+                                                      members=data["members"],
+                                                      file1=data['file'],
+                                                      pro_name=data['pro_name'],
+                                                      introduction=data['introducton'],
+                                                      create_year=data['create_year'],
+                                                      end_year=data['end_year'])
+            # srtp_project.update_time = timezone.now()
             srtp_project.save()
-            stu.srtp_project = srtp_project
-            stu.save()
             return self.success("Succeeded")
         else:
             return self.invalid_serializer(serializer)
