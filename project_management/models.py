@@ -16,6 +16,7 @@ class SRTPProject(models.Model):
 
     person_in_charge = models.ForeignKey(User, related_name='PIC_srtp', on_delete=models.CASCADE)
     members = models.CharField(max_length=500)
+    instructor = models.CharField(max_length=32)
 
     file1 = models.FileField()
     file2 = models.FileField(null=True)

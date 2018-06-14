@@ -14,7 +14,7 @@ from project_management.serializers import SRTPProjectCreationSerializer, SRTPPr
 
 class SRTPProjectCreationAPI(APIView):
     permission_classes = [login_required, student_required]
-    # parser_classes = [MultiPartParser]
+    parser_classes = [MultiPartParser]
 
     @swagger_auto_schema(
         operation_description="API: srtp  project creation",
@@ -42,26 +42,28 @@ class SRTPProjectCreationAPI(APIView):
             return self.invalid_serializer(serializer)
 
 
-class SRTPProjectInitFileDeletionAPI(APIView):
-    @swagger_auto_schema(
-        operation_description="API: SRTP project delete initial file",
-        responses={200: SuccessResponseSerializer,
-                   400: ErrorResponseSerializer}
-    )
-    def get(self, request):
-        """
-        用户必须有一个项目,
-        必须存在项目申请表,将所有的项目申请表都删掉
-        """
-        # data = request.data
-        user = request.user
-        '''
-        先找到原来的申请表
-        '''
-        srtp_project = User.objects.filter(username=user.username)
-        if srtp_project is None:
-            return self.error("there is no project!")
-        return self.success("Succeed")
+class SRTPFindAPI(APIView):
+    permission_classes = [login_required, student_required, secretary_required]
+# class SRTPProjectInitFileDeletionAPI(APIView):
+#     @swagger_auto_schema(
+#         operation_description="API: SRTP project delete initial file",
+#         responses={200: SuccessResponseSerializer,
+#                    400: ErrorResponseSerializer}
+#     )
+#     def get(self, request):
+#         """
+#         用户必须有一个项目,
+#         必须存在项目申请表,将所有的项目申请表都删掉
+#         """
+#         # data = request.data
+#         user = request.user
+#         '''
+#         先找到原来的申请表
+#         '''
+#         srtp_project = User.objects.filter(username=user.username)
+#         if srtp_project is None:
+#             return self.error("there is no project!")
+#         return self.success("Succeed")
 
 
 class SRTPProjectInitFileUploadAPI(APIView):
