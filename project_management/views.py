@@ -3,17 +3,16 @@ from utils.serializers import SuccessResponseSerializer, ErrorResponseSerializer
 from drf_yasg.utils import swagger_auto_schema
 from project_management.models import SRTPProject, EduProject, GraProject
 from utils.constants import FileType, ProStage, UserType
-from account.models import User
 from account.decorators import *
 from rest_framework.parsers import MultiPartParser
 import django.utils.timezone as timezone
-from project_management.serializers import SRTPProjectCreationSerializer, SRTPProjectInitFileUploadSerializer
+from project_management.serializers import *
 
 '''---------------------------SRTP项目部分---------------------------------------'''
 
 
 class SRTPProjectCreationAPI(APIView):
-    permission_classes = [login_required, student_required]
+    permission_classes = [student_required]
     parser_classes = [MultiPartParser]
 
     @swagger_auto_schema(
@@ -27,15 +26,28 @@ class SRTPProjectCreationAPI(APIView):
         if serializer.is_valid():
             data = serializer.data
 
+            PIC = User.objects.filter(username=data['PIC_id']).first()
+            # 保存文件
+            file = request.FILES['file1']
+            # print(file)
+            # print(file.size)
+            # file_url =  '../static/upload/'
+            # f = open(file_url+file.name, 'wb')
+            # for line in file.chunks():
+            #     f.write(line)
+            # f.close()
             srtp_project = SRTPProject.objects.create(pro_level=data["pro_level"],
-                                                      person_in_charge=data['person_in_charge'],
+                                                      person_in_charge=PIC,
                                                       members=data["members"],
-                                                      file1=data['file'],
+                                                      instructor=data['instructor'],
+                                                      file1=file,
                                                       pro_name=data['pro_name'],
-                                                      introduction=data['introducton'],
+                                                      introduction=data['introduction'],
                                                       create_year=data['create_year'],
                                                       end_year=data['end_year'])
             # srtp_project.update_time = timezone.now()
+            # srtp_project.file1.save(file.name, file)
+            # print(srtp_project.file1.name)
             srtp_project.save()
             return self.success("Succeeded")
         else:
@@ -43,59 +55,85 @@ class SRTPProjectCreationAPI(APIView):
 
 
 class SRTPFindAPI(APIView):
-    permission_classes = [login_required, student_required, secretary_required]
-# class SRTPProjectInitFileDeletionAPI(APIView):
-#     @swagger_auto_schema(
-#         operation_description="API: SRTP project delete initial file",
-#         responses={200: SuccessResponseSerializer,
-#                    400: ErrorResponseSerializer}
-#     )
-#     def get(self, request):
-#         """
-#         用户必须有一个项目,
-#         必须存在项目申请表,将所有的项目申请表都删掉
-#         """
-#         # data = request.data
-#         user = request.user
-#         '''
-#         先找到原来的申请表
-#         '''
-#         srtp_project = User.objects.filter(username=user.username)
-#         if srtp_project is None:
-#             return self.error("there is no project!")
-#         return self.success("Succeed")
+    permission_classes = [student_required]
+
+    @swagger_auto_schema(
+            operation_description="API: SRTP project find",
+            request_body=SRTPFindSerializer,
+            responses={200: SuccessResponseSerializer,
+                       400: ErrorResponseSerializer}
+        )
+    def post(self, request):
+        serializer = SRTPFindSerializer(data=request.data)
+        if serializer.is_valid():
+            data = serializer.data
+            PIC = User.objects.filter(username=data['PCI_id']).first()
+            srtp_pro = SRTPProject.objects.filter(person_in_charge=PIC).first()
+            if srtp_pro is None:
+                return self.success("There is no project")
+            return self.success({'id': srtp_pro.id, 'pro_name': srtp_pro.pro_name, 'person_in_charge': PIC.username,
+                                 'create_year': srtp_pro.create_year, 'pro_state': srtp_pro.pro_state,
+                                 'pro_level': srtp_pro.pro_level})
+        else:
+            return self.invalid_serializer(serializers)
 
 
-class SRTPProjectInitFileUploadAPI(APIView):
+class SRTPProjectFileUploadAPI(APIView):
     parser_classes = [MultiPartParser]
+    permissions = [student_required]
 
     @swagger_auto_schema(
         operation_description="API: SRTP project upload initial file",
-        request_body=SRTPProjectInitFileUploadSerializer,
+        request_body=SRTPProjectFileUploadSerializer,
         responses={200: SuccessResponseSerializer,
                    400: ErrorResponseSerializer}
     )
     def post(self, request):
-        serializer = SRTPProjectInitFileUploadSerializer(data=request.data)
-        '''
-        用户必定会有一个项目
-        1. 删除之前的文件
-        2. 添加现在的文件
-        3. 那么必须有删除文件的操作
-        '''
+        serializer = SRTPProjectFileUploadSerializer(data=request.data)
         if serializer.is_valid():
             data = serializer.data
-            user = serializer.user
+            srtp_pro = SRTPProject.objects.get(id=data['pro_id'])
+            file = request.FILES['file']
+            pro_stage = data['pro_stage']
+            if pro_stage == ProStage.INIT:
+                srtp_pro.file1 = file
+            elif pro_stage == ProStage.MID:
+                srtp_pro.file2 = file
+            else:
+                srtp_pro.file3 = file
+            srtp_pro.save()
+            return self.success("Succeed")
+        else:
+            return self.invalid_serializer(serializer)
 
-            files = data['file']
-            srtp_project = User.objects.filter(username=user.username)
 
-            if srtp_project is None:
-                return self.error("there is no match project!")
+class SRTPUpdateAPI(APIView):
+    permissions = [student_required]
 
-            cnt = 1
-            for file in files:
-                cnt += 1
+    @swagger_auto_schema(
+        operation_description="API: SRTP project information update",
+        request_body=SRTPUpdateSerializer,
+        responses={200: SuccessResponseSerializer,
+                   400: ErrorResponseSerializer}
+    )
+    def post(self, request):
+        serializer = SRTPUpdateSerializer(data=request.data)
+        if serializer.is_valid():
+            data = serializer.data
+            srtp_pro = SRTPProject.objects.filter(id=data['pro_id']).first()
+            members = data['members']
+            instructor = data['instructor']
+            introduction = data['introduction']
+            if members:
+                srtp_pro.members = members
+                srtp_pro.pro_state = ProState.APPLYING
+            if instructor:
+                srtp_pro.instructor = instructor
+                srtp_pro.pro_state = ProState.MIDTERM_CHECKING
+            if introduction:
+                srtp_pro.introduction = introduction
+                srtp_pro.pro_state = ProState.FINAL_CHEKING
+            srtp_pro.save()
             return self.success("Succeed")
         else:
             return self.invalid_serializer(serializer)

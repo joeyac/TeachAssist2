@@ -49,7 +49,7 @@ class ProState(Choices):
     APPLY_PASSED = 'apply_passed'
     MIDTERM_CHECKING = 'midterm_checking'
     MIDTERM_PASSED = 'midterm_passed'
-    RUNNING = 'running'
+    FINAL_CHEKING = 'final_checking'
     POSTPONED = 'postponed'
     DONE = 'done'
     ABANDONED = 'abandoned'

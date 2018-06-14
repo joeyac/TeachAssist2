@@ -39,15 +39,19 @@ urlpatterns = [
     path('jet/', include('jet.urls', 'jet')),
     path('jet/dashboard/', include('jet.dashboard.urls', 'jet-dashboard')),
     path('admin/', admin.site.urls),
-    path('', include('account.urls')),
-    path('', include('course_arrangement.urls')),
-    path('', include('project_management.urls')),
+    path('account/', include('account.urls')),
+    path('course/', include('course_arrangement.urls')),
+    path('project/', include('project_management.urls')),
 
     path('doc2/', schema_view.with_ui('swagger', cache_timeout=None), name='schema-swagger-ui'),
     path('doc1/', schema_view.with_ui('redoc', cache_timeout=None), name='schema-redoc'),
 
-    path('get-token/', obtain_jwt_token),
-    path('refresh-token/', refresh_jwt_token),
-    path('verify-token/', verify_jwt_token),
+    path('account/get-token/', obtain_jwt_token),
+    path('account/refresh-token/', refresh_jwt_token),
+    path('account/verify-token/', verify_jwt_token),
 
 ]
+from django.conf import settings
+from django.conf.urls.static import static
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
