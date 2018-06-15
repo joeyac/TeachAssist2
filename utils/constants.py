@@ -37,7 +37,7 @@ class ProStage(Choices):
     MID = 'midterm'
     FIN = 'final'
     END = 'end'
-    postpone = 'postpone'
+    POSTPONE = 'postpone'
 
 
 class ProType(Choices):
@@ -47,7 +47,7 @@ class ProType(Choices):
 
 
 class ProState(Choices):
-    APPLYING = 'apllying'
+    UNCONFIRMED = 'unconfirmed'
     APPLY_PASSED = 'apply_passed'
     MIDTERM_CHECKING = 'midterm_checking'
     MIDTERM_PASSED = 'midterm_passed'
