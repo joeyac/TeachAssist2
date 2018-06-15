@@ -16,7 +16,7 @@ class SRTPProjectCreationAPI(APIView):
     parser_classes = [MultiPartParser]
 
     @swagger_auto_schema(
-        operation_description="API: srtp  project creation",
+        operation_description="API: 1. SRTP  project creation",
         request_body=SRTPProjectCreationSerializer,
         responses={200: SuccessResponseSerializer,
                    400: ErrorResponseSerializer}
@@ -58,7 +58,7 @@ class SRTPFindAPI(APIView):
     permission_classes = [student_required]
 
     @swagger_auto_schema(
-            operation_description="API: SRTP project find",
+            operation_description="API: 2. SRTP project find",
             request_body=SRTPFindSerializer,
             responses={200: SuccessResponseSerializer,
                        400: ErrorResponseSerializer}
@@ -83,7 +83,7 @@ class SRTPProjectFileUploadAPI(APIView):
     permissions = [student_required]
 
     @swagger_auto_schema(
-        operation_description="API: SRTP project upload initial file",
+        operation_description="API: 3. SRTP project upload initial file",
         request_body=SRTPProjectFileUploadSerializer,
         responses={200: SuccessResponseSerializer,
                    400: ErrorResponseSerializer}
@@ -111,7 +111,7 @@ class SRTPUpdateAPI(APIView):
     permissions = [student_required]
 
     @swagger_auto_schema(
-        operation_description="API: SRTP project information update",
+        operation_description="API: 4. SRTP project information update",
         request_body=SRTPUpdateSerializer,
         responses={200: SuccessResponseSerializer,
                    400: ErrorResponseSerializer}
