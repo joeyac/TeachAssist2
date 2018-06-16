@@ -54,7 +54,7 @@ class SRTPFindSelfAPI(APIView):
         if srtp_pro is None:
             return self.success("There is no project")
         else:
-            return self.success({'id': srtp_pro.id, 'pro_name': srtp_pro.pro_name, 'person_in_charge': PIC.real_name,
+            return self.success({'id': srtp_pro.id, 'pro_name': srtp_pro.pro_name, 'person_in_charge': PIC.username,
                              'create_year': srtp_pro.create_year, 'pro_state': srtp_pro.pro_state,
                              'pro_level': srtp_pro.pro_level})
 
@@ -351,7 +351,7 @@ class SRTPFindAllSimpleAPI(APIView):
         single_pro = []
         total_pro = []
         for srtp_pro in srtp_pros:
-            single_pro.append((srtp_pro.person_in_charge.real_name, str(getattr(srtp_pro, srtp_pros.person_in_charge.real_name))))
+            single_pro.append((srtp_pro.person_in_charge.username, str(getattr(srtp_pro, srtp_pros.person_in_charge.username))))
             single_pro.append((srtp_pro.create_year, str(getattr(srtp_pro, srtp_pros.create_year))))
             single_pro.append((srtp_pro.end_year, str(getattr(srtp_pro, srtp_pros.end_year))))
             single_pro.append((srtp_pro.pro_level, str(getattr(srtp_pro, srtp_pros.pro_level))))

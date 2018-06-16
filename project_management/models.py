@@ -73,6 +73,7 @@ class GraProject(models.Model):
     check_file = models.FilePathField(null=True)
 
     pro_name = models.CharField(max_length=100)
+    pro_state = models.CharField(max_length=10, default=ProState.UNCONFIRMED, choices=ProState.model_choices())
 
     def toDict(self):
         lst = []

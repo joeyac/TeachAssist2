@@ -7,7 +7,7 @@ from django.conf import settings
 
 
 class SRTPProjectCreationSerializer(serializers.ModelSerializer):
-    real_name = serializers.HiddenField(default=serializers.CurrentUserDefault())
+    username = serializers.HiddenField(default=serializers.CurrentUserDefault())
     file_url = serializers.FilePathField(settings.MEDIA_ROOT)
 
     class Meta:
@@ -16,7 +16,7 @@ class SRTPProjectCreationSerializer(serializers.ModelSerializer):
 
     def validate(self, data):
 
-        PIC = User.objects.filter(real_name=data['real_name']).first()
+        PIC = User.objects.filter(username=data['username']).first()
         srtp_pro = SRTPProject.objects.filter(person_in_charge=PIC)
         if srtp_pro:
             raise serializers.ValidationError("student ({}) has been in charge of a SRTP project."
@@ -36,7 +36,7 @@ class SRTPUpdateSerializer(serializers.Serializer):
     members = serializers.CharField(max_length=500, required=False, allow_null=True)
     instructor = serializers.CharField(max_length=32, required=False, allow_null=True)
     introduction = serializers.CharField(max_length=2000, required=False, allow_null=True)
-    real_name = serializers.HiddenField(default=serializers.CurrentUserDefault())
+    username = serializers.HiddenField(default=serializers.CurrentUserDefault())
     file_url = serializers.CharField(max_length=200, required=False, allow_null=True)
     op_code = serializers.ChoiceField(choices=OperationCode.model_choices())
 
@@ -44,7 +44,7 @@ class SRTPUpdateSerializer(serializers.Serializer):
         srtp_pro = SRTPProject.objects.filter(id=data['pro_id']).first()
         if srtp_pro is None:
             raise serializers.ValidationError("project ({}) does not exist!".format(srtp_pro.pro_name))
-        PCI = User.objects.get(real_name=data['real_name'])
+        PCI = User.objects.get(username=data['username'])
         if srtp_pro.person_in_charge.id != PCI.id:
             raise serializers.ValidationError("user is not in charge of the project({})".format(srtp_pro.pro_name))
         try:
@@ -78,6 +78,7 @@ class SRTPGetALLSerializer(serializers.Serializer):
         srtp_pro = SRTPProject.objects.filter(id=data['pro_id']).first()
         if srtp_pro is None:
             raise serializers.ValidationError("no project ({})".format(srtp_pro.pro_name))
+        return data
 
 # -------------毕业设计----------------------
 
@@ -102,7 +103,7 @@ class GraProjectCreationSerializer(serializers.ModelSerializer):
         return data
 
 
-class GraUpdateSerializer(serializers.ModelSerializer):
+class GraUpdateSerializer(serializers.Serializer):
     pro_id = serializers.IntegerField()
     username = serializers.HiddenField(default=serializers.CurrentUserDefault())
     file_url = serializers.FilePathField(settings.MEDIA_ROOT)
@@ -117,7 +118,7 @@ class GraUpdateSerializer(serializers.ModelSerializer):
         return data
 
 
-class GraStateChangeSerializer(serializers.ModelSerializer):
+class GraStateChangeSerializer(serializers.Serializer):
     pro_id = serializers.IntegerField()
     username = serializers.HiddenField(default=serializers.CurrentUserDefault())
     file_url = serializers.FilePathField(settings.MEDIA_ROOT)

@@ -9,4 +9,4 @@ class User(AbstractUser):
     user_type = models.CharField(max_length=10, default=UserType.STUDENT, choices=UserType.model_choices())
 
     def __str__(self):
-        return "{}".format(self.real_name)
+        return "{}".format(self.username)
