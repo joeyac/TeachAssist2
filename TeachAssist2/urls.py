@@ -15,7 +15,6 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
-from rest_framework_jwt.views import obtain_jwt_token, refresh_jwt_token, verify_jwt_token
 
 from rest_framework.permissions import AllowAny
 from drf_yasg.views import get_schema_view
@@ -39,15 +38,11 @@ urlpatterns = [
     path('jet/', include('jet.urls', 'jet')),
     path('jet/dashboard/', include('jet.dashboard.urls', 'jet-dashboard')),
     path('admin/', admin.site.urls),
-    path('', include('account.urls')),
-    path('', include('course_arrangement.urls')),
-    path('', include('project_management.urls')),
+    path('auth/', include('account.urls')),
+    path('course/', include('course_arrangement.urls')),
+    path('project/', include('project_management.urls')),
 
     path('doc2/', schema_view.with_ui('swagger', cache_timeout=None), name='schema-swagger-ui'),
     path('doc1/', schema_view.with_ui('redoc', cache_timeout=None), name='schema-redoc'),
-
-    path('get-token/', obtain_jwt_token),
-    path('refresh-token/', refresh_jwt_token),
-    path('verify-token/', verify_jwt_token),
 
 ]

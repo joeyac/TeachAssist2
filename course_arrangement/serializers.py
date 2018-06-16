@@ -1,57 +1,26 @@
+from django.db.models import Max
 from rest_framework import serializers
-from utils.constants import UserType
 from course_arrangement.models import *
 
 
-class RequirementCreateSerializer(serializers.Serializer):
-    favorite = serializers.IntegerField(min_value=-10, max_value=5)
-    lecture_id = serializers.IntegerField()
-    teacher_id = serializers.IntegerField()
+class WeekDaySlotSerializer(serializers.Serializer):
+    week = serializers.IntegerField(default=4)
+    day = serializers.IntegerField(default=5)
+    slot = serializers.IntegerField(default=5)
 
     def validate(self, data):
-        if data['favorite'] not in RequireDegree.choices():
-            raise serializers.ValidationError("favorite should in {}".format(RequireDegree.model_choices()))
+        if data['week'] <= 0 or data['day'] <= 0 or data['slot'] <= 0:
+            raise serializers.ValidationError("all value should be positive value")
 
-        lecture = Requirement.objects.filter(id=data['lecture_id']).first()
-        if not lecture:
-            raise serializers.ValidationError("lecture ({}) does not exist.".format(data['lecture_id']))
+        week_max = Course.objects.aggregate(val=Max('start_week', 'end_week'))['val']
+        if data['week'] < week_max:
+            raise serializers.ValidationError(
+                "day value({}) should no less than any course week({})".format(data['week'], week_max))
 
-        teacher = User.objects.filter(id=data['teacher_id'], user_type=UserType.TEACHER).first()
-        if not teacher:
-            raise serializers.ValidationError("teacher ({}) does not exist.".format(data['teacher_id']))
-
-        return data
-
-
-class UpdateWeekDaySectionSerializer(serializers.Serializer):
-    weeks = serializers.IntegerField(min_value=1, default=1)
-    days = serializers.IntegerField(min_value=1, default=5)
-    sections = serializers.IntegerField(min_value=1, default=5)
-
-
-class CreateClassRoomSerializer(serializers.Serializer):
-    college = serializers.CharField(max_length=255)
-    floor = serializers.IntegerField(min_value=1)
-    capacity = serializers.IntegerField(min_value=1)
-    room_id = serializers.CharField(max_length=20)
-
-
-class CreateCourseSerializer(serializers.Serializer):
-    teacher_id = serializers.IntegerField()
-    name = serializers.CharField(max_length=255)
-    total_period_number = serializers.IntegerField(min_value=1)
-    capacity = serializers.IntegerField(min_value=1)
-
-    class_room_ids = serializers.ListField(allow_null=True, allow_empty=True)
-
-    def validate(self, data):
-        teacher = User.objects.filter(id=data['teacher_id'], user_type=UserType.TEACHER).first()
-        if not teacher:
-            raise serializers.ValidationError("teacher ({}) does not exist.".format(data['teacher_id']))
-        for cid in data['class_room_ids']:
-            class_room = ClassRoom.objects.filter(id=cid)
-            if not class_room:
-                raise serializers.ValidationError("class room ({}) does not exist.".format(cid))
+        if data['day'] > 5:
+            raise serializers.ValidationError("day value({}) should less than 5".format(data['day']))
+        if data['slot'] > 5:
+            raise serializers.ValidationError("slot value({}) should less than 5".format(data['slot']))
         return data
 
 
@@ -65,3 +34,52 @@ class CourseSerializer(serializers.ModelSerializer):
     class Meta:
         model = Course
         fields = ['name', 'total_period_number', 'capacity']
+
+
+class SpecialCourseSerializer(serializers.ModelSerializer):
+    full_name = serializers.ReadOnlyField(label='name')
+    teacher = serializers.StringRelatedField()
+    week_str = serializers.ReadOnlyField()
+
+    class Meta:
+        model = Course
+        fields = ['full_name', 'week_str', 'teacher']
+
+
+class AssignmentSerializer(serializers.ModelSerializer):
+    classroom_name = serializers.ReadOnlyField(label='classroom')
+    course = SpecialCourseSerializer(read_only=True)
+
+    class Meta:
+        model = Assignment
+        fields = ['day', 'slot', 'classroom_name', 'course']
+
+
+class TeacherAssignmentSerializer(serializers.Serializer):
+    tid = serializers.IntegerField()
+
+    def validate(self, data):
+        instance = User.objects.all().filter(id=data['tid'], user_type=UserType.TEACHER).first()
+        if not instance:
+            raise serializers.ValidationError("no such teacher: {}".format(data['tid']))
+        return data
+
+
+class ClassRoomAssignmentSerializer(serializers.Serializer):
+    rid = serializers.IntegerField()
+
+    def validate(self, data):
+        instance = ClassRoom.objects.all().filter(id=data['rid']).first()
+        if not instance:
+            raise serializers.ValidationError("no such class room: {}".format(data['rid']))
+        return data
+
+
+class ClassAssignmentSerializer(serializers.Serializer):
+    cid = serializers.IntegerField()
+
+    def validate(self, data):
+        instance = Class.objects.all().filter(id=data['cid']).first()
+        if not instance:
+            raise serializers.ValidationError("no such class: {}".format(data['cid']))
+        return data

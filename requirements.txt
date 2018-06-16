@@ -3,3 +3,4 @@ djangorestframework==3.8.2
 drf-yasg[validation]
 djangorestframework_jwt
 django-jet
+psycopg2-binary

@@ -1,68 +1,150 @@
 from drf_yasg.utils import swagger_auto_schema
-
+from django.core.cache import cache
+from utils.constants import AlgorithmStatus
 from utils.constants import SUCCESS_RESPONSE_STRING, ERROR_RESPONSE_STRING
 from utils.views import APIView
-
+from rest_framework.parsers import MultiPartParser
 from course_arrangement.serializers import *
 from course_arrangement.models import *
 
+from course_arrangement.algorithm_lab import solver
 
-class RequirementCreateAPI(APIView):
+
+class ExecuteAssignmentAPI(APIView):
+    permission_classes = []
+    parser_classes = [MultiPartParser]
 
     @swagger_auto_schema(
-        operation_description="API: Create Requirement",
-        request_body=RequirementCreateSerializer,
+        operation_description="API: execute assignment algorithm",
+        request_body=WeekDaySlotSerializer,
         responses={200: SUCCESS_RESPONSE_STRING,
-                   400: ERROR_RESPONSE_STRING}
+                   400: {"error": None, "data": {'success': True, 'info': 'info', 'preference': 10.0}}.__str__()}
     )
     def post(self, request):
-        serializer = RequirementCreateSerializer(data=request.data)
+        serializer = WeekDaySlotSerializer(data=request.data)
         if serializer.is_valid():
-            data = serializer.data
-            lecture = Requirement.objects.filter(id=data['lecture_id']).first()
-            teacher = User.objects.filter(id=data['teacher_id'], user_type=UserType.TEACHER).first()
-            instance = Requirement.objects.create(favorite=data['favorite'], lecture=lecture, teacher=teacher)
-            instance.save()
-            return self.success("create requirement success")
+
+            if cache.get('ALGO_STATUS') == AlgorithmStatus.RUNNING:
+                return self.error('assignment is running')
+            cache.set('ALGO_STATUS', AlgorithmStatus.RUNNING)
+
+            week = serializer.data['week']
+            day = serializer.data['day']
+            slot = serializer.data['slot']
+            solver.load_data(week=week, day=day, time_slot=slot)
+            success = solver.run()
+            info = solver.write_to_database()
+            preference = solver.get_objective_value()
+            data = {
+                'success': success,
+                'info': info,
+                'preference': preference
+            }
+
+            cache.set('ALGO_STATUS', AlgorithmStatus.IDLE)
+
+            return self.success(data)
         else:
             return self.invalid_serializer(serializer)
 
 
-class UpdateWeekDaySectionAPI(APIView):
+class ReExecuteAssignmentAPI(APIView):
+    permission_classes = []
+    parser_classes = [MultiPartParser]
 
     @swagger_auto_schema(
-        operation_description="API: update week day period, notice this will destroy all existed period",
-        request_body=UpdateWeekDaySectionSerializer,
+        operation_description="API: re-execute assignment algorithm",
         responses={200: SUCCESS_RESPONSE_STRING,
-                   400: ERROR_RESPONSE_STRING}
+                   400: {"error": None, "data": {'success': True, 'info': 'info', 'preference': 10.0}}.__str__()}
     )
-    def post(self, request):
-        serializer = UpdateWeekDaySectionSerializer(data=request.data)
-        if serializer.is_valid():
-            data = serializer.data
-            weeks = data['weeks']
-            days = data['days']
-            sections = data['sections']
-            Period.objects.all().delete()
-            for i in range(1, weeks + 1):
-                for j in range(1, days + 1):
-                    for k in range(1, sections + 1):
-                        Period.objects.create(week=i, day=j, section=k)
-            # 所有对应的lecture都被级联删除了，重新生成
-            periods = Period.objects.all()
-            classrooms = ClassRoom.objects.all()
-            for period in periods:
-                for classroom in classrooms:
-                    Lecture.objects.create(period=period, classroom=classroom)
-            return self.success()
-        else:
-            return self.invalid_serializer(serializer)
-
-
-
-
-class ATestAPI(APIView):
-
     def get(self, request):
-        from utils.algorithm import execute
-        return self.success(execute())
+        if cache.get('ALGO_STATUS') == AlgorithmStatus.RUNNING:
+            return self.error('assignment is running')
+        if cache.get('ALGO_STATUS') == AlgorithmStatus.NEW:
+            return self.error('you should run execute assignment first')
+        try:
+            cache.set('ALGO_STATUS', AlgorithmStatus.RUNNING)
+            success = solver.run_another_optimal()
+            info = solver.write_to_database()
+            preference = solver.get_objective_value()
+            data = {
+                'success': success,
+                'info': info,
+                'preference': preference
+            }
+            cache.set('ALGO_STATUS', AlgorithmStatus.IDLE)
+            return self.success(data)
+        except Exception as e:
+            return self.error(str(e))
+
+
+class ShowTimeTableByClassAPI(APIView):
+    permission_classes = []
+    parser_classes = [MultiPartParser]
+
+    @swagger_auto_schema(
+        operation_description="API: show time table by class, need class id",
+        request_body=ClassAssignmentSerializer,
+        responses={200: AssignmentSerializer(many=True),
+                   400: ERROR_RESPONSE_STRING}
+    )
+    def post(self, request):
+        serializer = ClassAssignmentSerializer(data=request.data)
+        if serializer.is_valid():
+            if cache.get('ALGO_STATUS') == AlgorithmStatus.RUNNING:
+                return self.error('assignment is running')
+
+            cls = Class.objects.get(id=serializer.data['cid'])
+            assignments = Assignment.objects.filter(course__classes__in=[cls])
+            data = AssignmentSerializer(instance=assignments, many=True).data
+            return self.success(data)
+        else:
+            return self.invalid_serializer(serializer)
+
+
+class ShowTimeTableByClassRoomAPI(APIView):
+    permission_classes = []
+    parser_classes = [MultiPartParser]
+
+    @swagger_auto_schema(
+        operation_description="API: show time table by class room, need class room id",
+        request_body=ClassRoomAssignmentSerializer,
+        responses={200: AssignmentSerializer(many=True),
+                   400: ERROR_RESPONSE_STRING}
+    )
+    def post(self, request):
+        serializer = ClassRoomAssignmentSerializer(data=request.data)
+        if serializer.is_valid():
+            if cache.get('ALGO_STATUS') == AlgorithmStatus.RUNNING:
+                return self.error('assignment is running')
+
+            classroom = ClassRoom.objects.get(id=serializer.data['rid'])
+            assignments = Assignment.objects.filter(classroom=classroom)
+            data = AssignmentSerializer(instance=assignments, many=True).data
+            return self.success(data)
+        else:
+            return self.invalid_serializer(serializer)
+
+
+class ShowTimeTableByTeacherAPI(APIView):
+    permission_classes = []
+    parser_classes = [MultiPartParser]
+
+    @swagger_auto_schema(
+        operation_description="API: show time table by teacher, need teacher id",
+        request_body=TeacherAssignmentSerializer,
+        responses={200: AssignmentSerializer(many=True),
+                   400: ERROR_RESPONSE_STRING}
+    )
+    def post(self, request):
+        serializer = TeacherAssignmentSerializer(data=request.data)
+        if serializer.is_valid():
+            if cache.get('ALGO_STATUS') == AlgorithmStatus.RUNNING:
+                return self.error('assignment is running')
+
+            teacher = User.objects.get(id=serializer.data['tid'], user_type=UserType.TEACHER)
+            assignments = Assignment.objects.filter(course__teacher=teacher)
+            data = AssignmentSerializer(instance=assignments, many=True).data
+            return self.success(data)
+        else:
+            return self.invalid_serializer(serializer)

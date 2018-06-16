@@ -2,12 +2,16 @@ class Choices:
     @classmethod
     def choices(cls):
         d = cls.__dict__
-        return [d[item] for item in d.keys() if not item.startswith("__")]
+        ret = [d[item] for item in d.keys() if not item.startswith("__")]
+        ret.sort(reverse=True)
+        return ret
 
     @classmethod
     def model_choices(cls):
         d = cls.__dict__
-        return [(d[item], item) for item in d.keys() if not item.startswith("__")]
+        ret = [(d[item], item) for item in d.keys() if not item.startswith("__")]
+        ret.sort(reverse=True)
+        return ret
 
 
 class UserType(Choices):
@@ -16,13 +20,30 @@ class UserType(Choices):
     SECRETARY = 'secretary'
 
 
+class AlgorithmStatus(Choices):
+    NEW = 'new'
+    IDLE = 'idle'
+    RUNNING = 'running'
+
+
 class RequireDegree(Choices):
-    MOST = 5
-    SECOND = 4
-    ACCEPT = 3
-    MEDIOCRE = 2
-    LEAST = 1
-    REJECT = -10
+    HARD_ACCEPT = 10
+
+    SOFT_ACCEPT_5 = 5
+    SOFT_ACCEPT_4 = 4
+    SOFT_ACCEPT_3 = 3
+    SOFT_ACCEPT_2 = 2
+    SOFT_ACCEPT_1 = 1
+
+    SOFT_MEDIOCRE = 0
+
+    SOFT_REJECT_1 = -1
+    SOFT_REJECT_2 = -2
+    SOFT_REJECT_3 = -3
+    SOFT_REJECT_4 = -4
+    SOFT_REJECT_5 = -5
+
+    HARD_REJECT = -10
 
 
 class FileType(Choices):

@@ -7,13 +7,13 @@ from account.serializers import UserRegisterSerializer
 from account.models import User
 from account.decorators import login_required
 
-from rest_framework.permissions import AllowAny
-
+from rest_framework.parsers import MultiPartParser
 from drf_yasg.utils import swagger_auto_schema
 
 
 class UserRegisterAPI(APIView):
-    permission_classes = [AllowAny]
+    permission_classes = []
+    parser_classes = [MultiPartParser]
 
     @swagger_auto_schema(
         operation_description="API: User register",
@@ -34,7 +34,8 @@ class UserRegisterAPI(APIView):
                 return self.error("Username already exists")
             if User.objects.filter(email=data["email"]).exists():
                 return self.error("Email already exists")
-            user = User.objects.create(username=data["username"], email=data["email"], user_type=data["user_type"])
+            user = User.objects.create(username=data["username"], email=data["email"], user_type=data["user_type"],
+                                       real_name=data['real_name'])
             user.set_password(data["password"])
             user.save()
             return self.success("Succeeded")

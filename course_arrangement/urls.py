@@ -2,8 +2,11 @@ from django.urls import path
 from course_arrangement.views import *
 
 urlpatterns = [
-    path('create_requirement/', RequirementCreateAPI.as_view(), name='create_requirement'),
-    path('update_week_day_section/', UpdateWeekDaySectionAPI.as_view(), name='update_week_day_section'),
+    path('timetable/teacher/', ShowTimeTableByTeacherAPI.as_view()),
+    path('timetable/classroom/', ShowTimeTableByClassRoomAPI.as_view()),
+    path('timetable/class/', ShowTimeTableByClassAPI.as_view()),
 
-    path('atest', ATestAPI.as_view()),
+    path('assignment/execute/', ExecuteAssignmentAPI.as_view()),
+    path('assignment/re-execute/', ReExecuteAssignmentAPI.as_view()),
+
 ]
