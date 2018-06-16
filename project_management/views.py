@@ -1,8 +1,6 @@
 from utils.views import APIView
 from utils.serializers import SuccessResponseSerializer, ErrorResponseSerializer
 from drf_yasg.utils import swagger_auto_schema
-from project_management.models import SRTPProject, EduProject, GraProject
-from utils.constants import FileType, ProStage, UserType
 from account.decorators import *
 from rest_framework.parsers import MultiPartParser
 import django.utils.timezone as timezone
@@ -26,25 +24,18 @@ class SRTPProjectCreationAPI(APIView):
         if serializer.is_valid():
             data = serializer.data
 
-            PIC = User.objects.filter(id=data['PIC_id']).first()
-            # 保存文件
-            file = request.FILES['file1']
-            # file_url =  '../static/upload/'
-            # f = open(file_url+file.name, 'wb')
-            # for line in file.chunks():
-            #     f.write(line)
-            # f.close()
+            PIC = User.objects.filter(username=data['username']).first()
             srtp_project = SRTPProject.objects.create(pro_level=data["pro_level"],
                                                       person_in_charge=PIC,
                                                       members=data["members"],
                                                       instructor=data['instructor'],
-                                                      file1=file,
+                                                      file1=data['file_url'],
                                                       pro_name=data['pro_name'],
                                                       introduction=data['introduction'],
                                                       create_year=data['create_year'],
                                                       end_year=data['end_year'])
             srtp_project.save()
-            return self.success("Succeeded")
+            return self.success(srtp_project.toDict())
         else:
             return self.invalid_serializer(serializer)
 
@@ -91,50 +82,37 @@ class SRTPGetSelfAPI(APIView):
         if srtp_pro is None:
             return self.success("There is no project")
         else:
-            return self.success(srtp_pro)
+            return self.success(srtp_pro.toDict())
 
 
-class SRTPProjectFileUploadAPI(APIView):
+class FileUploadAPI(APIView):
+    permissions = [student_required, teacher_required]
     parser_classes = [MultiPartParser]
-    permissions = [student_required]
 
     @swagger_auto_schema(
-        operation_description="API: SRTP project upload initial file",
-        request_body=SRTPProjectFileUploadSerializer,
+        operation_description="API: SRTP project information update",
+        request_body=FileUploadSerializer,
         responses={200: SuccessResponseSerializer,
                    400: ErrorResponseSerializer}
     )
     def post(self, request):
-        serializer = SRTPProjectFileUploadSerializer(data=request.data)
+        serializer = FileUploadSerializer(data=request.data)
         if serializer.is_valid():
-            data = serializer.data
-            srtp_pro = SRTPProject.objects.get(id=data['pro_id'])
-            file = request.FILES['file']
-            pro_stage = data['pro_stage']
-            if pro_stage == ProStage.INIT:
-                srtp_pro.file1 = file
-                srtp_pro.pro_state = ProState.UNCONFIRMED
-            elif pro_stage == ProStage.MID:
-                srtp_pro.file2 = file
-                srtp_pro.pro_state = ProState.MIDTERM_CHECKING
-            elif pro_stage == ProStage.FIN:
-                srtp_pro.file3 = file
-                srtp_pro.pro_state = ProState.FINAL_CHEKING
-            elif pro_stage == ProStage.END:
-                srtp_pro.file4 = file
-                srtp_pro.pro_state = ProState.END_UNCONFIRMED
-            elif pro_stage == ProStage.POSTPONE:
-                srtp_pro.file4 = file
-                srtp_pro.pro_state = ProState.POSTPONE_UNCONFIRMED
-
-            srtp_pro.save()
-            return self.success("Succeed")
+            file = request.FILES.get('file')
+            file_url = os.getcwd()+'/static/upload/'+file.name
+            print(file_url)
+            with open(file_url, 'wb') as f:
+                for line in file.chunks():
+                    f.write(line)
+                f.close()
+            return self.success(file_url)
         else:
             return self.invalid_serializer(serializer)
 
 
 class SRTPUpdateAPI(APIView):
     permissions = [student_required]
+    parser_classes = [MultiPartParser]
 
     @swagger_auto_schema(
         operation_description="API: SRTP project information update",
@@ -143,21 +121,39 @@ class SRTPUpdateAPI(APIView):
                    400: ErrorResponseSerializer}
     )
     def post(self, request):
-        serializer = SRTPUpdateSerializer(data=request.data)
+        serializer = SRTPUpdateSerializer(data=request.data, context={'request': request})
         if serializer.is_valid():
             data = serializer.data
             srtp_pro = SRTPProject.objects.filter(id=data['pro_id']).first()
             members = data['members']
             instructor = data['instructor']
             introduction = data['introduction']
+            file_url = data['file_url']
             if members:
                 srtp_pro.members = members
             if instructor:
                 srtp_pro.instructor = instructor
             if introduction:
                 srtp_pro.introduction = introduction
+            operation = data['op_code']
+            if operation == OperationCode.UPLOAD_INT:
+                    srtp_pro.file1 = file_url
+                    srtp_pro.pro_state = ProState.UNCONFIRMED
+            elif operation == OperationCode.UPLOAD_MID:
+                    srtp_pro.file2 = file_url
+                    srtp_pro.pro_state = ProState.MIDTERM_CHECKING
+            elif operation == OperationCode.UPLOAD_FIN:
+                    srtp_pro.file3 = file_url
+                    srtp_pro.pro_state = ProState.FINAL_CHEKING
+            elif operation == OperationCode.UPLOAD_TER:
+                    srtp_pro.file4 = file_url
+                    srtp_pro.pro_state = ProState.TERMINATED
+            elif operation == OperationCode.UPLOAD_POS:
+                    srtp_pro.file4 = file_url
+                    srtp_pro.pro_state = ProState.POSTPONED
             srtp_pro.save()
-            return self.success("Succeed")
+
+            return self.success(srtp_pro.toDict())
         else:
             return self.invalid_serializer(serializer)
 
@@ -185,11 +181,6 @@ class GraProjectCreationAPI(APIView):
             PIC = User.objects.filter(id=data['PIC_id']).first()
             # 保存文件
             file = request.FILES['file1']
-            # file_url =  '../static/upload/'
-            # f = open(file_url+file.name, 'wb')
-            # for line in file.chunks():
-            #     f.write(line)
-            # f.close()
             srtp_project = SRTPProject.objects.create(pro_level=data["pro_level"],
                                                       person_in_charge=PIC,
                                                       members=data["members"],
@@ -200,7 +191,7 @@ class GraProjectCreationAPI(APIView):
                                                       create_year=data['create_year'],
                                                       end_year=data['end_year'])
             srtp_project.save()
-            return self.success("Succeeded")
+            return self.success(srtp_project.toDict())
         else:
             return self.invalid_serializer(serializer)
 
@@ -210,6 +201,7 @@ class GraProjectCreationAPI(APIView):
 
 class SRTPStateChangeAPI(APIView):
     permissions = [secretary_required]
+    parser_classes = [MultiPartParser]
 
     @swagger_auto_schema(
         operation_description="API: SRTP project state change",
@@ -222,9 +214,39 @@ class SRTPStateChangeAPI(APIView):
         if serializer.is_valid():
             data = serializer.data
             srtp_pro = SRTPProject.objects.filter(id=data['pro_id']).first()
-            srtp_pro.pro_state = data['pro_state']
+            op_code = data['op_code']
+            if op_code == OperationCode.CREATION_PASS:
+                srtp_pro.pro_state = ProState.APPLY_PASSED
+            elif op_code == OperationCode.FIN_PASS:
+                srtp_pro.pro_state = ProState.DONE
+            elif op_code == OperationCode.MID_PASS:
+                srtp_pro.pro_state = ProState.MIDTERM_PASSED
+            elif op_code == OperationCode.REJECT:
+                srtp_pro.pro_state = ProState.TERMINATED
             srtp_pro.save()
-            return self.success("Done!")
+            return self.success(srtp_pro.toDict())
+        else:
+            return self.invalid_serializer(serializer)
+
+
+class SRTPLevelChangeAPI(APIView):
+    permissions = [secretary_required]
+    parser_classes = [MultiPartParser]
+
+    @swagger_auto_schema(
+        operation_description="API: SRTP project state change",
+        request_body=SRTPLevelChangeSerializer,
+        responses={200: SuccessResponseSerializer,
+                   400: ErrorResponseSerializer}
+    )
+    def post(self, request):
+        serializer = SRTPLevelChangeSerializer(data=request.data)
+        if serializer.is_valid():
+            data = serializer.data
+            srtp_pro = SRTPProject.objects.filter(id=data['pro_id']).first()
+            srtp_pro.pro_level = data['pro_level']
+            srtp_pro.save()
+            return self.success(srtp_pro.toDict())
         else:
             return self.invalid_serializer(serializer)
 
@@ -260,6 +282,7 @@ class SRTPFindAllAPI(APIView):
 
 class SRTPGetAPI(APIView):
     permissions = [secretary_required]
+    parser_classes = [MultiPartParser]
 
     @swagger_auto_schema(
         operation_description="API: SRTP project state change",
@@ -272,6 +295,6 @@ class SRTPGetAPI(APIView):
         if serializer.is_valid():
             data = serializer.data
             srtp_pro = SRTPProject.objects.get(id=data['pro_id'])
-            return self.success(srtp_pro)
+            return self.success(srtp_pro.toDict())
         else:
             return self.invalid_serializer(serializer)

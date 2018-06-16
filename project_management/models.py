@@ -26,6 +26,12 @@ class SRTPProject(models.Model):
     pro_name = models.CharField(max_length=100)
     introduction = models.CharField(max_length=2000)
 
+    def toDict(self):
+        lst = []
+        for attr in self._meta.fields:
+            lst.append((attr.name, str(getattr(self, attr.name))))
+        return dict(lst)
+
 
 class EduProject(models.Model):
     update_time = models.DateTimeField(auto_now=True)
@@ -46,6 +52,12 @@ class EduProject(models.Model):
     pro_name = models.CharField(max_length=100)
     introduction = models.CharField(max_length=2000)
 
+    def toDict(self):
+        lst = []
+        for attr in self._meta.fields:
+            lst.append((attr.name, str(getattr(self, attr.name))))
+        return dict(lst)
+
 
 class GraProject(models.Model):
     update_time = models.DateTimeField(auto_now=True)
@@ -64,3 +76,9 @@ class GraProject(models.Model):
 
     pro_name = models.CharField(max_length=100)
     introduction = models.CharField(max_length=2000)
+
+    def toDict(self):
+        lst = []
+        for attr in self._meta.fields:
+            lst.append((attr.name, str(getattr(self, attr.name))))
+        return dict(lst)

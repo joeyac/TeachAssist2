@@ -55,8 +55,21 @@ class ProState(Choices):
     POSTPONE_UNCONFIRMED = 'postpone_unconfirmed'
     POSTPONED = 'postponed'
     DONE = 'done'
-    END = 'END'
-    END_UNCONFIRMED = 'end_unconfirmed'
+    TERMINATED = 'terminated'
+    TERMINATE_UNCONFIRMED = 'terminate_unconfirmed'
+
+
+class OperationCode(Choices):
+    UPDATE = '000'
+    UPLOAD_INT = '100'
+    UPLOAD_MID = '101'
+    UPLOAD_TER = '102'
+    UPLOAD_POS = '103'
+    UPLOAD_FIN = '104'
+    CREATION_PASS = '201'
+    MID_PASS = '202'
+    FIN_PASS = '203'
+    REJECT = '204'
 
 
 class ProLevel(Choices):
