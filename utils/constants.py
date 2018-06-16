@@ -69,9 +69,9 @@ class ProType(Choices):
 
 class ProState(Choices):
     UNCONFIRMED = '1'
-    APPLY_PASSED = '2'
+    MIDTERM = '2'
     MIDTERM_CHECKING = '3'
-    MIDTERM_PASSED = '4'
+    FINALTERM = '4'
     FINAL_CHEKING = '6'
     POSTPONE_UNCONFIRMED = 'postpone_unconfirmed'
     POSTPONED = '5'
@@ -91,6 +91,8 @@ class OperationCode(Choices):
     MID_PASS = '202'
     FIN_PASS = '203'
     REJECT = '204'
+    UPLOAD_TASK = '301'
+    UPLOAD_CHECK = '302'
 
 
 class ProLevel(Choices):

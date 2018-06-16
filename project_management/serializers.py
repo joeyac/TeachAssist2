@@ -43,7 +43,7 @@ class SRTPUpdateSerializer(serializers.Serializer):
     def validate(self, data):
         srtp_pro = SRTPProject.objects.filter(id=data['pro_id']).first()
         if srtp_pro is None:
-            raise serializers.ValidationError("no project ({})".format(srtp_pro.pro_name))
+            raise serializers.ValidationError("project ({}) does not exist!".format(srtp_pro.pro_name))
         PCI = User.objects.get(real_name=data['real_name'])
         if srtp_pro.person_in_charge.id != PCI.id:
             raise serializers.ValidationError("user is not in charge of the project({})".format(srtp_pro.pro_name))
@@ -71,7 +71,7 @@ class SRTPLevelChangeSerializer(serializers.Serializer):
     pro_level = serializers.ChoiceField(choices=ProLevel.model_choices())
 
 
-class SRTPGetSerializer(serializers.Serializer):
+class SRTPGetALLSerializer(serializers.Serializer):
     pro_id = serializers.IntegerField()
 
     def validate(self, data):
@@ -83,8 +83,52 @@ class SRTPGetSerializer(serializers.Serializer):
 
 
 class GraProjectCreationSerializer(serializers.ModelSerializer):
-    real_name = serializers.HiddenField(default=serializers.CurrentUserDefault())
+    teacher_username = serializers.CharField(max_length=32)
+    student_username = serializers.CharField(max_length=32)
 
     class Meta:
         model = GraProject
-        exclude = ('select_file ', 'start_file', 'end_file', 'task_file', 'check_file', 'update_time')
+        exclude = ('start_file', 'end_file', 'task_file', 'check_file', 'update_time', 'student', 'pro_state', 'teacher')
+
+    def validate(self, data):
+        student = User.objects.filter(username=data['student_username']).first()
+        teacher = User.objects.filter(username=data['teacher_username']).first()
+        gra_pro = GraProject.objects.filter(student=student).first()
+        if gra_pro is not None:
+            raise serializers.ValidationError("student({}) has already had a graduation project!".format(student.username))
+        if teacher is None:
+            raise serializers.ValidationError("teacher({}) does not exist!".format(data['teacher_username']))
+        # file_url = data['select_file']
+        return data
+
+
+class GraUpdateSerializer(serializers.ModelSerializer):
+    pro_id = serializers.IntegerField()
+    username = serializers.HiddenField(default=serializers.CurrentUserDefault())
+    file_url = serializers.FilePathField(settings.MEDIA_ROOT)
+    op_code = serializers.ChoiceField(choices=OperationCode.model_choices())
+
+    def validate(self, data):
+        gra_pro = GraProject.objects.filter(id=data['pro_id'])
+        if gra_pro is None:
+            raise serializers.ValidationError("project({}) does not exist!".format(data['pro_id']))
+        if gra_pro.student.uername != data['username']:
+            raise serializers.ValidationError("project id ({}) error!".format(data['pro_id']))
+        return data
+
+
+class GraStateChangeSerializer(serializers.ModelSerializer):
+    pro_id = serializers.IntegerField()
+    username = serializers.HiddenField(default=serializers.CurrentUserDefault())
+    file_url = serializers.FilePathField(settings.MEDIA_ROOT)
+    op_code = serializers.ChoiceField(choices=OperationCode.model_choices())
+
+    def validate(self, data):
+        gra_pro = GraProject.objects.filter(id=data['pro_id'])
+        if gra_pro is None:
+            raise serializers.ValidationError("project({}) does not exist!".format(data['pro_id']))
+        if gra_pro.teacher.uername != data['username']:
+            raise serializers.ValidationError("project id ({}) error!".format(data['pro_id']))
+        return data
+
+

@@ -10,9 +10,19 @@ urlpatterns = [
     path('SRTPGetSelf/', SRTPGetSelfAPI.as_view(), name='SRTPGetSelf'),
 
     path('SRTPStateChange/', SRTPStateChangeAPI.as_view(), name='SRTPStateChange'),
-    path('SRTPLevelChang/', SRTPLevelChangeAPI.as_view(), name='SRTPLevelChange'),
+    path('SRTPLevelChange/', SRTPLevelChangeAPI.as_view(), name='SRTPLevelChange'),
     path('SRTPFindAll/', SRTPFindAllAPI.as_view(), name='SRTPFindAll'),
-    path('SRTPGet/', SRTPGetAPI.as_view(), name='SRTPGet'),
+    path('SRTPGetALL/', SRTPGetALLAPI.as_view(), name='SRTPGetALL'),
 
-    # path('GraDeletion/', GraProjectDeletionAPI.as_view(), name='GraDeletion'),
+    path('GraProjectCreation/', GraProjectCreationAPI.as_view(), name='GraProjectCreation'),
+    path('GraUpdate/', GraUpdateAPI.as_view(), name='GraUpdate'),
+    path('GraGetSelf/', GraGetSelfAPI.as_view(), name='GraGetSelf'),
+
+    path('GraStateChange/', GraStateChangeAPI.as_view(), name='GraStateChange'),
+    path('GraGetALL/', GraGetALLAPI.as_view(), name='GraGetALL'),
+    # path('GraProjectCreation/', GraProjectCreationAPI.as_view(), name='GraProjectCreation'),
+    # path('GraProjectCreation/', GraProjectCreationAPI.as_view(), name='GraProjectCreation'),
+    # path('GraProjectCreation/', GraProjectCreationAPI.as_view(), name='GraProjectCreation'),
+    # path('GraProjectCreation/', GraProjectCreationAPI.as_view(), name='GraProjectCreation'),
+    # path('GraProjectCreation/', GraProjectCreationAPI.as_view(), name='GraProjectCreation'),
 ]

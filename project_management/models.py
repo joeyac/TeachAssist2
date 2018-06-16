@@ -61,8 +61,6 @@ class EduProject(models.Model):
 
 class GraProject(models.Model):
     update_time = models.DateTimeField(auto_now=True)
-    create_year = models.DateField()
-    end_year = models.DateField()
 
     teacher = models.ForeignKey(User, related_name='teacher_gra', on_delete=models.CASCADE)
     student = models.OneToOneField(User, related_name='student_gra', on_delete=models.CASCADE)
@@ -75,7 +73,6 @@ class GraProject(models.Model):
     check_file = models.FilePathField(null=True)
 
     pro_name = models.CharField(max_length=100)
-    introduction = models.CharField(max_length=2000)
 
     def toDict(self):
         lst = []
