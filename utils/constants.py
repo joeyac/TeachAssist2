@@ -57,6 +57,8 @@ class ProStage(Choices):
     INIT = 'initial'
     MID = 'midterm'
     FIN = 'final'
+    END = 'end'
+    POSTPONE = 'postpone'
 
 
 class ProType(Choices):
@@ -66,10 +68,29 @@ class ProType(Choices):
 
 
 class ProState(Choices):
-    RUNNING = 'running'
+    UNCONFIRMED = 'unconfirmed'
+    APPLY_PASSED = 'apply_passed'
+    MIDTERM_CHECKING = 'midterm_checking'
+    MIDTERM_PASSED = 'midterm_passed'
+    FINAL_CHEKING = 'final_checking'
+    POSTPONE_UNCONFIRMED = 'postpone_unconfirmed'
     POSTPONED = 'postponed'
     DONE = 'done'
-    ABANDONED = 'abandoned'
+    TERMINATED = 'terminated'
+    TERMINATE_UNCONFIRMED = 'terminate_unconfirmed'
+
+
+class OperationCode(Choices):
+    UPDATE = '000'
+    UPLOAD_INT = '100'
+    UPLOAD_MID = '101'
+    UPLOAD_TER = '102'
+    UPLOAD_POS = '103'
+    UPLOAD_FIN = '104'
+    CREATION_PASS = '201'
+    MID_PASS = '202'
+    FIN_PASS = '203'
+    REJECT = '204'
 
 
 class ProLevel(Choices):
