@@ -19,11 +19,11 @@ class SRTPProjectCreationAPI(APIView):
                    400: ErrorResponseSerializer}
     )
     def post(self, request):
-        serializer = SRTPProjectCreationSerializer(data=request.data)
+        serializer = SRTPProjectCreationSerializer(data=request.data, context={'request': request})
         if serializer.is_valid():
             data = serializer.data
-
-            PIC = User.objects.filter(username=data['username']).first()
+            user = request.user
+            PIC = User.objects.filter(id=user.id).first()
             srtp_project = SRTPProject.objects.create(pro_level=data["pro_level"],
                                                       person_in_charge=PIC,
                                                       members=data["members"],
@@ -52,12 +52,12 @@ class SRTPFindSelfAPI(APIView):
         )
     def get(self, request):
         user = request.user
-        PIC = User.objects.filter(username=user.username).first()
+        PIC = User.objects.filter(id=user.id).first()
         srtp_pro = SRTPProject.objects.filter(person_in_charge=PIC).first()
         if srtp_pro is None:
             return self.success("There is no project")
         else:
-            return self.success({'id': srtp_pro.id, 'pro_name': srtp_pro.pro_name, 'person_in_charge': PIC.username,
+            return self.success({'id': srtp_pro.id, 'pro_name': srtp_pro.pro_name, 'person_in_charge': PIC.real_name,
                              'create_year': srtp_pro.create_year, 'pro_state': srtp_pro.pro_state,
                              'pro_level': srtp_pro.pro_level})
 
@@ -75,7 +75,7 @@ class SRTPGetSelfAPI(APIView):
         )
     def get(self, request):
         user = request.user
-        PIC = User.objects.filter(username=user.username).first()
+        PIC = User.objects.filter(id=user.id).first()
         srtp_pro = SRTPProject.objects.filter(person_in_charge=PIC).first()
         if srtp_pro is None:
             return self.success("There is no project")
@@ -249,12 +249,11 @@ class SRTPLevelChangeAPI(APIView):
             return self.invalid_serializer(serializer)
 
 
-class SRTPFindAllAPI(APIView):
+class SRTPFindAllSimpleAPI(APIView):
     permissions = [secretary_required]
 
     @swagger_auto_schema(
         operation_description="API: SRTP project state change",
-        # request_body=SRTPStateChangeSerializer,
         responses={200: SuccessResponseSerializer,
                    400: ErrorResponseSerializer}
     )
@@ -265,16 +264,35 @@ class SRTPFindAllAPI(APIView):
         single_pro = []
         total_pro = []
         for srtp_pro in srtp_pros:
-            single_pro.append(srtp_pro.PIC_id)
-            single_pro.append(srtp_pro.create_year)
-            single_pro.append(srtp_pro.end_year)
-            single_pro.append(srtp_pro.pro_level)
-            single_pro.append(srtp_pro.members)
-            single_pro.append(srtp_pro.pro_name)
-            single_pro.append(srtp_pro.introduction)
-            single_pro.append(srtp_pro.instructor)
-            total_pro.append(single_pro)
+            single_pro.append((srtp_pro.person_in_charge.real_name, str(getattr(srtp_pro, srtp_pros.person_in_charge.real_name))))
+            single_pro.append((srtp_pro.create_year, str(getattr(srtp_pro, srtp_pros.create_year))))
+            single_pro.append((srtp_pro.end_year, str(getattr(srtp_pro, srtp_pros.end_year))))
+            single_pro.append((srtp_pro.pro_level, str(getattr(srtp_pro, srtp_pros.pro_level))))
+            single_pro.append((srtp_pro.members, str(getattr(srtp_pro, srtp_pros.members))))
+            single_pro.append((srtp_pro.pro_name, str(getattr(srtp_pro, srtp_pros.pro_name))))
+            single_pro.append((srtp_pro.introduction, str(getattr(srtp_pro, srtp_pros.introduction))))
+            single_pro.append((srtp_pro.instructor, str(getattr(srtp_pro, srtp_pros.instructor))))
+            total_pro.append(dict(single_pro))
             single_pro = []
+        return self.success(total_pro)
+
+
+class SRTPFindAllAPI(APIView):
+    permissions = [secretary_required]
+
+    @swagger_auto_schema(
+        operation_description="API: SRTP project state change",
+        responses={200: SuccessResponseSerializer,
+                   400: ErrorResponseSerializer}
+    )
+    def get(self, request):
+        srtp_pros = SRTPProject.objects.all()
+        if srtp_pros is None:
+            return self.success("no project exist!")
+        # single_pro = []
+        total_pro = []
+        for srtp_pro in srtp_pros:
+            total_pro.append(srtp_pro.toDict())
         return self.success(total_pro)
 
 

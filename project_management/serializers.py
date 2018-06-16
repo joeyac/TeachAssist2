@@ -7,20 +7,20 @@ from django.conf import settings
 
 
 class SRTPProjectCreationSerializer(serializers.ModelSerializer):
-    username = serializers.HiddenField(default=serializers.CurrentUserDefault())
+    real_name = serializers.HiddenField(default=serializers.CurrentUserDefault())
     file_url = serializers.FilePathField(settings.MEDIA_ROOT)
 
     class Meta:
         model = SRTPProject
-        exclude = ('file1', 'update_time', 'pro_state', 'file2', 'file3', 'file4', 'person_in_charge')
+        exclude = ('apply_file', 'update_time', 'pro_state', 'middle_file', 'end_file', 'abnormal_file', 'person_in_charge')
 
     def validate(self, data):
 
-        PIC = User.objects.filter(username=data['username']).first()
+        PIC = User.objects.filter(real_name=data['real_name']).first()
         srtp_pro = SRTPProject.objects.filter(person_in_charge=PIC)
         if srtp_pro:
             raise serializers.ValidationError("student ({}) has been in charge of a SRTP project."
-                                              .format(PIC.username))
+                                              .format(PIC.real_name))
         if data['create_year'] > data['end_year']:
             raise serializers.ValidationError("开始时间不能在结束时间之前!")
 
@@ -36,7 +36,7 @@ class SRTPUpdateSerializer(serializers.Serializer):
     members = serializers.CharField(max_length=500, required=False, allow_null=True)
     instructor = serializers.CharField(max_length=32, required=False, allow_null=True)
     introduction = serializers.CharField(max_length=2000, required=False, allow_null=True)
-    username = serializers.HiddenField(default=serializers.CurrentUserDefault())
+    real_name = serializers.HiddenField(default=serializers.CurrentUserDefault())
     file_url = serializers.CharField(max_length=200, required=False, allow_null=True)
     op_code = serializers.ChoiceField(choices=OperationCode.model_choices())
 
@@ -44,7 +44,7 @@ class SRTPUpdateSerializer(serializers.Serializer):
         srtp_pro = SRTPProject.objects.filter(id=data['pro_id']).first()
         if srtp_pro is None:
             raise serializers.ValidationError("no project ({})".format(srtp_pro.pro_name))
-        PCI = User.objects.get(username=data['username'])
+        PCI = User.objects.get(real_name=data['real_name'])
         if srtp_pro.person_in_charge.id != PCI.id:
             raise serializers.ValidationError("user is not in charge of the project({})".format(srtp_pro.pro_name))
         try:
@@ -83,8 +83,8 @@ class SRTPGetSerializer(serializers.Serializer):
 
 
 class GraProjectCreationSerializer(serializers.ModelSerializer):
-    username = serializers.HiddenField(default=serializers.CurrentUserDefault())
+    real_name = serializers.HiddenField(default=serializers.CurrentUserDefault())
 
     class Meta:
         model = GraProject
-        exclude = ('file1', 'file2', 'file3', 'file4', 'file5', 'update_time')
+        exclude = ('select_file ', 'start_file', 'end_file', 'task_file', 'check_file', 'update_time')

@@ -10,7 +10,9 @@ urlpatterns = [
     path('SRTPGetSelf/', SRTPGetSelfAPI.as_view(), name='SRTPGetSelf'),
 
     path('SRTPStateChange/', SRTPStateChangeAPI.as_view(), name='SRTPStateChange'),
+    path('SRTPLevelChang/', SRTPLevelChangeAPI.as_view(), name='SRTPLevelChange'),
+    path('SRTPFindAll/', SRTPFindAllAPI.as_view(), name='SRTPFindAll'),
+    path('SRTPGet/', SRTPGetAPI.as_view(), name='SRTPGet'),
 
-    # path('SRTPProjectFileUpload/', SRTPProjectFileUploadAPI.as_view(), name='SRTPProjectFileUpload'),
     # path('GraDeletion/', GraProjectDeletionAPI.as_view(), name='GraDeletion'),
 ]
