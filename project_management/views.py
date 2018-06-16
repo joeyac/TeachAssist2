@@ -3,7 +3,6 @@ from utils.serializers import SuccessResponseSerializer, ErrorResponseSerializer
 from drf_yasg.utils import swagger_auto_schema
 from account.decorators import *
 from rest_framework.parsers import MultiPartParser
-import django.utils.timezone as timezone
 from project_management.serializers import *
 
 '''---------------------------SRTP项目部分---------------------------------------'''
@@ -29,7 +28,7 @@ class SRTPProjectCreationAPI(APIView):
                                                       person_in_charge=PIC,
                                                       members=data["members"],
                                                       instructor=data['instructor'],
-                                                      file1=data['file_url'],
+                                                      apply_file=data['file_url'],
                                                       pro_name=data['pro_name'],
                                                       introduction=data['introduction'],
                                                       create_year=data['create_year'],
@@ -71,7 +70,6 @@ class SRTPGetSelfAPI(APIView):
 
     @swagger_auto_schema(
             operation_description="API: SRTP project find",
-            # request_body=SRTPFindSerializer,
             responses={200: SuccessResponseSerializer,
                        400: ErrorResponseSerializer}
         )
@@ -99,7 +97,7 @@ class FileUploadAPI(APIView):
         serializer = FileUploadSerializer(data=request.data)
         if serializer.is_valid():
             file = request.FILES.get('file')
-            file_url = os.getcwd()+'/static/upload/'+file.name
+            file_url = settings.MEDIA_ROOT + file.name
             print(file_url)
             with open(file_url, 'wb') as f:
                 for line in file.chunks():
@@ -137,19 +135,19 @@ class SRTPUpdateAPI(APIView):
                 srtp_pro.introduction = introduction
             operation = data['op_code']
             if operation == OperationCode.UPLOAD_INT:
-                    srtp_pro.file1 = file_url
+                    srtp_pro.apply_file = file_url
                     srtp_pro.pro_state = ProState.UNCONFIRMED
             elif operation == OperationCode.UPLOAD_MID:
-                    srtp_pro.file2 = file_url
+                    srtp_pro.middle_file = file_url
                     srtp_pro.pro_state = ProState.MIDTERM_CHECKING
             elif operation == OperationCode.UPLOAD_FIN:
-                    srtp_pro.file3 = file_url
+                    srtp_pro.end_file = file_url
                     srtp_pro.pro_state = ProState.FINAL_CHEKING
             elif operation == OperationCode.UPLOAD_TER:
-                    srtp_pro.file4 = file_url
+                    srtp_pro.abnormal_file = file_url
                     srtp_pro.pro_state = ProState.TERMINATED
             elif operation == OperationCode.UPLOAD_POS:
-                    srtp_pro.file4 = file_url
+                    srtp_pro.abnormal_file = file_url
                     srtp_pro.pro_state = ProState.POSTPONED
             srtp_pro.save()
 

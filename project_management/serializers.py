@@ -3,11 +3,12 @@ from utils.constants import FileType, ProType, ProState, ProLevel, ProStage, Ope
 from project_management.models import *
 from account.models import User
 import os
+from django.conf import settings
 
 
 class SRTPProjectCreationSerializer(serializers.ModelSerializer):
     username = serializers.HiddenField(default=serializers.CurrentUserDefault())
-    file_url = serializers.FilePathField(os.getcwd()+'/static/upload/')
+    file_url = serializers.FilePathField(settings.MEDIA_ROOT)
 
     class Meta:
         model = SRTPProject

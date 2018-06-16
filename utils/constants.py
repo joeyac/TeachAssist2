@@ -68,15 +68,15 @@ class ProType(Choices):
 
 
 class ProState(Choices):
-    UNCONFIRMED = 'unconfirmed'
-    APPLY_PASSED = 'apply_passed'
-    MIDTERM_CHECKING = 'midterm_checking'
-    MIDTERM_PASSED = 'midterm_passed'
-    FINAL_CHEKING = 'final_checking'
+    UNCONFIRMED = '1'
+    APPLY_PASSED = '2'
+    MIDTERM_CHECKING = '3'
+    MIDTERM_PASSED = '4'
+    FINAL_CHEKING = '6'
     POSTPONE_UNCONFIRMED = 'postpone_unconfirmed'
-    POSTPONED = 'postponed'
-    DONE = 'done'
-    TERMINATED = 'terminated'
+    POSTPONED = '5'
+    DONE = '7'
+    TERMINATED = '8'
     TERMINATE_UNCONFIRMED = 'terminate_unconfirmed'
 
 
@@ -94,9 +94,9 @@ class OperationCode(Choices):
 
 
 class ProLevel(Choices):
-    COLLEGE = u'院级'
-    MUNICIPALPROMOTED = u'市级推荐级'
-    NATIONALPROMOTED = u'国家推荐级'
+    COLLEGE = '1'
+    MUNICIPALPROMOTED = '2'
+    NATIONALPROMOTED = '3'
 
 
 ERROR_RESPONSE_STRING = {"error": "err", "data": "msg"}.__str__()
