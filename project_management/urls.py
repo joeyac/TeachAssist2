@@ -14,14 +14,14 @@ urlpatterns = [
     path('SRTPFindAll/', SRTPFindAllAPI.as_view(), name='SRTPFindAll'),
     path('SRTPGetAll/', SRTPGetAllAPI.as_view(), name='SRTPGetAll'),
 
-    path('GraProjectCreation/', GraProjectCreationAPI.as_view(), name='GraProjectCreation'),
+    path('GraCreation/', GraCreationAPI.as_view(), name='GraCreation'),
     path('GraUpdate/', GraUpdateAPI.as_view(), name='GraUpdate'),
     path('GraGetSelf/', GraGetSelfAPI.as_view(), name='GraGetSelf'),
 
     path('GraStateChange/', GraStateChangeAPI.as_view(), name='GraStateChange'),
     path('GraGetAll/', GraGetAllAPI.as_view(), name='GraGetALL'),
 
-    path('EduCreation/', SRTPProjectCreationAPI.as_view(), name='SRTPCreation'),
+    path('EduCreation/', EduCreationAPI.as_view(), name='SRTPCreation'),
     path('EduUpdate/', EduUpdateAPI.as_view(), name='EduUpdate'),
     path('EduGetSelf/', EduGetSelfAPI.as_view(), name='EduGetSelf'),
 
