@@ -1,13 +1,13 @@
-from drf_yasg.utils import swagger_auto_schema
 from django.core.cache import cache
+from drf_yasg.utils import swagger_auto_schema
+from rest_framework.parsers import MultiPartParser
+
+from course_arrangement.algorithm_lab import solver
+from course_arrangement.models import *
+from course_arrangement.serializers import *
 from utils.constants import AlgorithmStatus
 from utils.constants import SUCCESS_RESPONSE_STRING, ERROR_RESPONSE_STRING
 from utils.views import APIView
-from rest_framework.parsers import MultiPartParser
-from course_arrangement.serializers import *
-from course_arrangement.models import *
-
-from course_arrangement.algorithm_lab import solver
 
 
 class ExecuteAssignmentAPI(APIView):
@@ -148,3 +148,46 @@ class ShowTimeTableByTeacherAPI(APIView):
             return self.success(data)
         else:
             return self.invalid_serializer(serializer)
+
+
+class GetTeacherListAPI(APIView):
+    permission_classes = []
+    parser_classes = [MultiPartParser]
+
+    @swagger_auto_schema(
+        operation_description="API: get teacher list",
+        responses={200: TeacherSerializer(many=True),
+                   400: ERROR_RESPONSE_STRING}
+    )
+    def get(self, request):
+        teachers = User.objects.all().filter(user_type=UserType.TEACHER)
+        data = TeacherSerializer(instance=teachers, many=True).data
+        return self.success(data)
+
+
+class GetClassListAPI(APIView):
+    permission_classes = []
+    parser_classes = [MultiPartParser]
+
+    @swagger_auto_schema(
+        operation_description="API: get class list",
+        responses={200: ClassSerializer(many=True),
+                   400: ERROR_RESPONSE_STRING}
+    )
+    def get(self, request):
+        data = ClassSerializer(instance=Class.objects.all(), many=True).data
+        return self.success(data)
+
+
+class GetClassRoomListAPI(APIView):
+    permission_classes = []
+    parser_classes = [MultiPartParser]
+
+    @swagger_auto_schema(
+        operation_description="API: get class list",
+        responses={200: ClassRoomSerializer(many=True),
+                   400: ERROR_RESPONSE_STRING}
+    )
+    def get(self, request):
+        data = ClassRoomSerializer(instance=ClassRoom.objects.all(), many=True).data
+        return self.success(data)

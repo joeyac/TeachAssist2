@@ -1,5 +1,6 @@
 from django.db.models import Max
 from rest_framework import serializers
+
 from course_arrangement.models import *
 
 
@@ -24,10 +25,32 @@ class WeekDaySlotSerializer(serializers.Serializer):
         return data
 
 
+class TeacherSerializer(serializers.ModelSerializer):
+    name = serializers.ReadOnlyField(source='real_name')
+
+    def validate(self, data):
+        if User.objects.all().get(id=data['id']).user_type != UserType.TEACHER:
+            raise serializers.ValidationError('the user is not teacher')
+
+    class Meta:
+        model = User
+        fields = ['id', 'name']
+
+
+class ClassSerializer(serializers.ModelSerializer):
+    name = serializers.ReadOnlyField(source='__str__')
+
+    class Meta:
+        model = Class
+        fields = ['id', 'name']
+
+
 class ClassRoomSerializer(serializers.ModelSerializer):
+    name = serializers.ReadOnlyField(source='__str__')
+
     class Meta:
         model = ClassRoom
-        fields = ['college', 'floor', 'capacity', 'room_id']
+        fields = ['id', 'name']
 
 
 class CourseSerializer(serializers.ModelSerializer):

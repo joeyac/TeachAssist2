@@ -1,10 +1,11 @@
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models import Sum
+from django.utils.translation import gettext_lazy as _
+
 from account.models import User
-from django.core.exceptions import ValidationError
 from utils.constants import UserType, RequireDegree
 from utils.shortcuts import compress_week_arrays
-from django.utils.translation import gettext_lazy as _
 
 
 def validate_teacher(value):
@@ -160,7 +161,7 @@ class Course(models.Model):
 
     @property
     def teacher_name(self):
-        return "{}".format(self.teacher)
+        return "{}".format(self.teacher.real_name)
 
     @property
     def class_name(self):
@@ -170,7 +171,7 @@ class Course(models.Model):
             return '无'
 
     def __str__(self):
-        return "{}-{}-{}".format(self.full_name, self.teacher.real_name, self.week_str)
+        return "{}-{}-{}".format(self.full_name, self.teacher_name, self.week_str)
 
 
 class Assignment(models.Model):
@@ -182,7 +183,7 @@ class Assignment(models.Model):
 
     @property
     def teacher_name(self):
-        return "{}".format(self.course.teacher)
+        return "{}".format(self.course.teacher.real_name)
 
     @property
     def course_name(self):
