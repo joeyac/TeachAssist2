@@ -61,7 +61,7 @@ class CourseSerializer(serializers.ModelSerializer):
 
 class SpecialCourseSerializer(serializers.ModelSerializer):
     full_name = serializers.ReadOnlyField(label='name')
-    teacher = serializers.StringRelatedField()
+    teacher = serializers.ReadOnlyField(source='teacher_name')
     week_str = serializers.ReadOnlyField()
 
     class Meta:
