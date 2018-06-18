@@ -17,4 +17,4 @@ class User(AbstractUser):
     objects = CustomUserManager()
 
     def __str__(self):
-        return "{}".format(self.username)
+        return "{}".format(self.real_name)
