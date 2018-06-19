@@ -1,8 +1,9 @@
-from pulp.pulp import *
 from django.conf import settings
 from django.core.cache import cache
-from utils.constants import AlgorithmStatus
+from pulp.pulp import *
+
 from course_arrangement.models import *
+from utils.constants import AlgorithmStatus
 
 
 class Solver(object):
@@ -225,7 +226,7 @@ class Solver(object):
             for w in range(self.W):
                 for d in range(self.D):
                     for t in range(self.T):
-                        for i in range(self.R):
+                        for i in range(self.R + 1):
                             data += value(self.X_vars[l][w][d][t][i]) * (self.P1[l][d] + self.P2[l][t])
 
         for l, i in self.P3:
