@@ -249,14 +249,14 @@ class Solver(object):
             for w in range(self.W)
             for d in range(self.D)
             for t in range(self.T)
-            for i in range(self.R)
+            for i in range(self.R + 1)
         ]) + lpSum([
             self.X_vars[l][w][d][t][i] * self.P2[l][t]
             for l in range(self.L)
             for w in range(self.W)
             for d in range(self.D)
             for t in range(self.T)
-            for i in range(self.R)
+            for i in range(self.R + 1)
         ]) + lpSum([
             self.X_vars[l][w][d][t][i] * self.P3[(l, i)]
             for l, i in self.P3
@@ -274,7 +274,6 @@ class Solver(object):
     def add_subject_func(self):
         # 注意考虑针对实验课的虚拟教室的处理
         self.R = self.R + 1
-        # TODO: 检查每个地方有关R的下标和实验课内容
 
         # 保证同一个课时在不同周分配到相同的时槽和教室
         for l in range(self.L):
