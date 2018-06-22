@@ -66,7 +66,7 @@ class SpecialCourseSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Course
-        fields = ['full_name', 'week_str', 'teacher']
+        fields = ['full_name', 'week_str', 'teacher', 'id']
 
 
 class AssignmentSerializer(serializers.ModelSerializer):
